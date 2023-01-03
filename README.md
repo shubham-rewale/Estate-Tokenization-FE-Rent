@@ -1,1 +1,0 @@
-# mogul-mvp-fe-rent
