@@ -11,7 +11,7 @@ const PropertyDetails = () => {
       <div className="firstContainer flex ">
         <div className="imageContainer flex-1 p-16 ">
           <img
-            src={property.uri}
+            src={`https://ipfs.io/ipfs/${property.uri}`}
             style={{
               width: "100%",
               height: "100%",
@@ -29,14 +29,14 @@ const PropertyDetails = () => {
             delectus nesciunt sequi corrupti eligendi.
           </p>
           <p>Location : {property.location}</p>
-          <p>Token Id : {property.tokenId}</p>
-          <p>Tax Id : {property.taxId}</p>
+          <p>Token Id : {property.propertyTokenId}</p>
+          <p>Tax Id : {property.taxID}</p>
         </div>
       </div>
       <div className="Buttons flex justify-around">
         <Link
           className="ProposalLinkContainer"
-          to={`/proposals/property/${property.tokenId}`}
+          to={`/proposals/property/${property.propertyTokenId}`}
         >
           <div className="ProposalLink w-fit bg-white text-black text-xl p-2 rounded">
             Proposals
@@ -44,7 +44,7 @@ const PropertyDetails = () => {
         </Link>
         <Link
           className="RentOperationContainer"
-          to={`/rentOperations/${property.tokenId}`}
+          to={`/rentOperations/${property.propertyTokenId}`}
         >
           <div className="RentOperation w-fit bg-white text-black text-xl p-2 rounded">
             Rent Operations
@@ -52,7 +52,7 @@ const PropertyDetails = () => {
         </Link>
         <Link
           className="ReserveOperationContainer"
-          to={`/reserveOperations/${property.tokenId}`}
+          to={`/reserveOperations/${property.propertyTokenId}`}
         >
           <div className="ReserveOperation w-fit bg-white text-black text-xl p-2 rounded">
             Reserve Operations
