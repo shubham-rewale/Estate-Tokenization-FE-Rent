@@ -1,4 +1,3 @@
-import { ethers } from "ethers";
 const RentOperationDetails = () => {
   const propertyStatus = {
     propertyStatus: "Property is currently vacant",
