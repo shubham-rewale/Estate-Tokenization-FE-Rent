@@ -1,5 +1,8 @@
-import { useState } from "react";
-import PropertyDetails from "./PropertyDetils";
+import { ethers } from "ethers";
+import { BigNumber } from "bignumber.js";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { ABI, MUMBAI_ADDRESS } from "./contracts/DAO";
 import ProposalCard from "./ProposalCard";
 const Proposal = () => {
   const [proposalDetails, setproposalDetails] = useState({
@@ -8,6 +11,46 @@ const Proposal = () => {
     isVacancyReserve: true,
     isMaintenanceReserve: false,
   });
+
+  const [proposals, setProposals] = useState();
+
+  const location = useLocation();
+  //fetching the token id from url
+  const tokenId = location.pathname.split("/")[3];
+
+  useEffect(() => {
+    (async () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const network = await provider.getNetwork();
+      if (network.chainId != 80001) {
+        window.alert("Connect to Mumbai network");
+      } else {
+        const dao = new ethers.Contract(MUMBAI_ADDRESS, ABI, provider);
+
+        const proposalCounterHex = await dao.proposalCounter(tokenId);
+        const proposalCounterNumber = Number(proposalCounterHex._hex);
+        let tmp = [];
+        for (
+          let proposalId = 0;
+          proposalId < proposalCounterNumber;
+          proposalId++
+        ) {
+          const data = await dao.proposals(tokenId, proposalId);
+          const proposal = {
+            onChainProposalId: proposalId,
+            proposalProofLink: data.proposalProof,
+            withDrawFundsFrom:
+              data.withdrawFundsFrom === 0 ? "Maintenance" : "Vacancy",
+            amount: ethers.utils.formatEther(BigInt(data.amount).toString()),
+          };
+          tmp.push(proposal);
+          // console.log(data);
+        }
+        // console.log(tmp);
+        setProposals(tmp);
+      }
+    })();
+  }, []);
 
   const handleProposalForm = (e) => {
     // console.log(e.target.name, e.target.value);
@@ -35,16 +78,16 @@ const Proposal = () => {
     e.preventDefault();
     console.log(proposalDetails);
   };
-  const proposals = [
-    {
-      onChainProposalId: "1",
-      proposalProofLink: "I am the proposal link 2",
-      withDrawFundsFrom: "vacancy",
-      amount: "101",
-      isExecuted: false,
-      createdAt: "2023-01-03T09:49:35.676+00:00",
-    },
-  ];
+  // let proposals = [
+  //   {
+  //     onChainProposalId: "1",
+  //     proposalProofLink: "I am the proposal link 2",
+  //     withDrawFundsFrom: "vacancy",
+  //     amount: "101",
+  //     isExecuted: false,
+  //     createdAt: "2023-01-03T09:49:35.676+00:00",
+  //   },
+  // ];
   return (
     <div className="Proposal min-h-screen bg-black text-white">
       <div className="Container mx-4 mb-4 pt-10 flex">
@@ -168,15 +211,17 @@ const Proposal = () => {
           </p>
         </div>
         <div className="proposalContainer p-3 flex flex-wrap">
-          <ProposalCard key={0} proposal={proposals[0]} />
-          <ProposalCard key={1} proposal={proposals[0]} />
-          <ProposalCard key={2} proposal={proposals[0]} />
-          <ProposalCard key={3} proposal={proposals[0]} />
-          <ProposalCard key={4} proposal={proposals[0]} />
+          {proposals ? (
+            proposals.map((ele, idx) => (
+              <ProposalCard key={idx} proposal={ele} />
+            ))
+          ) : (
+            <p>Loading...</p>
+          )}
         </div>
       </div>
     </div>
   );
 };
-
+//
 export default Proposal;
