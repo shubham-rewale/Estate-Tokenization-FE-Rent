@@ -50,14 +50,14 @@ const PropertyDetails = () => {
             Rent Operations
           </div>
         </Link>
-        <Link className="ReserveOperationContainer">
+        <Link
+          className="ReserveOperationContainer"
+          to={`/reserveOperations/${property.tokenId}`}
+        >
           <div className="ReserveOperation w-fit bg-white text-black text-xl p-2 rounded">
             Reserve Operations
           </div>
         </Link>
-        {/* <button>button1</button>
-        <button>button2</button>
-        <button>button3</button> */}
       </div>
     </div>
   );
