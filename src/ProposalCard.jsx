@@ -13,7 +13,7 @@ const ProposalCard = (props) => {
         <p>Proof : {proposal.proposalProofLink}</p>
         <p>Requested Funds From : {proposal.withDrawFundsFrom}</p>
         <p>Amount : {proposal.amount}</p>
-        <p>Proposed At : {proposal.createdAt.split("T")[0]}</p>
+        {/* <p>Proposed At : {proposal.createdAt.split("T")[0]}</p> */}
       </div>
       <div className="InputAndButtons flex flex-col items-center">
         <div className="vote">
