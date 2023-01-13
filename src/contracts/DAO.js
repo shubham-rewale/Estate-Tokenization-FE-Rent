@@ -1,4 +1,4 @@
-const MUMBAI_ADDRESS = "0x9666290621041C4F9fe1E2a9CBF2d40cf9D7f6da";
+const MUMBAI_ADDRESS = "0x1Cf4F6cd58AA57175d8D8F427D06595f0c131240";
 const ABI = [
   {
     inputs: [],
@@ -124,13 +124,13 @@ const ABI = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "proposalId",
         type: "uint256",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "uint256",
         name: "tokenId",
         type: "uint256",
