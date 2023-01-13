@@ -1,9 +1,13 @@
 import { ethers } from "ethers";
+
 import { BigNumber } from "bignumber.js";
+import connectToMetamask from "./utils/connectTometamask";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ABI, MUMBAI_ADDRESS } from "./contracts/DAO";
 import ProposalCard from "./ProposalCard";
+import AxiosInstance from "./utils/axiosInstance";
+
 const Proposal = () => {
   const [proposalDetails, setproposalDetails] = useState({
     proposalProof: "",
@@ -36,12 +40,21 @@ const Proposal = () => {
           proposalId++
         ) {
           const data = await dao.proposals(tokenId, proposalId);
+          const proposalState = await dao.getProposalState(tokenId, proposalId);
+
           const proposal = {
+            tokenId,
             onChainProposalId: proposalId,
             proposalProofLink: data.proposalProof,
             withDrawFundsFrom:
               data.withdrawFundsFrom === 0 ? "Maintenance" : "Vacancy",
             amount: ethers.utils.formatEther(BigInt(data.amount).toString()),
+            proposalState:
+              proposalState === 0
+                ? "Pending"
+                : proposalState === 1
+                ? "Active"
+                : "Execution",
           };
           tmp.push(proposal);
           // console.log(data);
@@ -74,20 +87,66 @@ const Proposal = () => {
       });
     }
   };
-  const handleProposalSubmit = (e) => {
+  const handleProposalSubmit = async (e) => {
     e.preventDefault();
-    console.log(proposalDetails);
+    try {
+      const [provider, accounts, signer] = await connectToMetamask();
+      //checking the network
+      const chainId = await signer.getChainId();
+      if (chainId !== 80001) {
+        alert("connect you metamask to Mumbai network");
+        return;
+      }
+      console.log(accounts, signer);
+      console.log(proposalDetails);
+      const daoReadWrite = new ethers.Contract(MUMBAI_ADDRESS, ABI, signer);
+      const proposeAmount = ethers.utils.parseUnits(
+        proposalDetails.amount,
+        "ether"
+      );
+      const withDrawFundsFrom = proposalDetails.isMaintenanceReserve ? 0 : 1;
+      const response = await AxiosInstance(
+        `/api/vote/getVoters?tokenId=${tokenId}&target=voterRootHash`
+      );
+      const ownerRootHash = response.data.result.data;
+
+      const tx = await daoReadWrite.propose(
+        tokenId,
+        proposeAmount,
+        withDrawFundsFrom,
+        proposalDetails.proposalProof,
+        ownerRootHash
+      );
+      const txFinality = await tx.wait();
+      if (txFinality.blocknumber === null) {
+        alert("Transaction Failed");
+      } else {
+        // get the proposal id
+        let proposalId;
+        txFinality.events.forEach((event) => {
+          if (event.event === "proposalInitiated") {
+            proposalId = Number(event.args.proposalId._hex);
+          }
+        });
+        let response = await AxiosInstance.post("/api/propose/add", {
+          tokenId,
+          onChainProposalId: proposalId,
+        });
+        if (response.status === 201) {
+          alert("Submitted Proposal Successfully");
+        } else {
+          alert("Something Went Wrong, Try again");
+        }
+      }
+    } catch (err) {
+      if (err.code === 4001) {
+        window.alert("User Rejected Metamask Connection");
+      } else {
+        console.log(err);
+      }
+    }
   };
-  // let proposals = [
-  //   {
-  //     onChainProposalId: "1",
-  //     proposalProofLink: "I am the proposal link 2",
-  //     withDrawFundsFrom: "vacancy",
-  //     amount: "101",
-  //     isExecuted: false,
-  //     createdAt: "2023-01-03T09:49:35.676+00:00",
-  //   },
-  // ];
+
   return (
     <div className="Proposal min-h-screen bg-black text-white">
       <div className="Container mx-4 mb-4 pt-10 flex">
@@ -144,7 +203,7 @@ const Proposal = () => {
         bg-gray-900 
         rounded"
                   id="FromAmount"
-                  placeholder="Amount"
+                  placeholder="Amount In Ether"
                   name="amount"
                   value={proposalDetails.amount}
                   onChange={handleProposalForm}
@@ -216,7 +275,7 @@ const Proposal = () => {
               <ProposalCard key={idx} proposal={ele} />
             ))
           ) : (
-            <p>Loading...</p>
+            <p className="w-fit mx-auto text-5xl p-4">Loading...</p>
           )}
         </div>
       </div>
