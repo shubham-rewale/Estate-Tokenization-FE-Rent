@@ -97,8 +97,8 @@ const Proposal = () => {
         alert("connect you metamask to Mumbai network");
         return;
       }
-      console.log(accounts, signer);
-      console.log(proposalDetails);
+      // console.log(accounts, signer);
+      // console.log(proposalDetails);
       const daoReadWrite = new ethers.Contract(MUMBAI_ADDRESS, ABI, signer);
       const proposeAmount = ethers.utils.parseUnits(
         proposalDetails.amount,
@@ -118,7 +118,7 @@ const Proposal = () => {
         ownerRootHash
       );
       const txFinality = await tx.wait();
-      if (txFinality.blocknumber === null) {
+      if (txFinality.blockNumber === null) {
         alert("Transaction Failed");
       } else {
         // get the proposal id
