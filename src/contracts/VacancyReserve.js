@@ -1,5 +1,5 @@
-Vacancy_Mumbai_Address = "0x9C35F5FA175cA719082217D6C79cd181143438eE";
-VacancyReserveABI = [
+const Vacancy_Mumbai_Address = "0x9C35F5FA175cA719082217D6C79cd181143438eE";
+const VacancyReserveABI = [
   {
     inputs: [],
     stateMutability: "nonpayable",
@@ -341,3 +341,5 @@ VacancyReserveABI = [
     type: "receive",
   },
 ];
+
+export { Vacancy_Mumbai_Address, VacancyReserveABI };

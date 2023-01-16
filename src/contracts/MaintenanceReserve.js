@@ -1,5 +1,5 @@
-Maintenance_Mumbai = "0x945334a1271b7976ECFf39a3782182607e283b3D";
-MaintenanceReserveABI = [
+const Maintenance_Mumbai_Address = "0x945334a1271b7976ECFf39a3782182607e283b3D";
+const MaintenanceReserveABI = [
   {
     inputs: [],
     stateMutability: "nonpayable",
@@ -341,3 +341,5 @@ MaintenanceReserveABI = [
     type: "receive",
   },
 ];
+
+export { Maintenance_Mumbai_Address, MaintenanceReserveABI };
