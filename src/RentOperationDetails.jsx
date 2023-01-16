@@ -254,7 +254,7 @@ const RentOperationDetails = () => {
       );
       // console.log(response);
       const owners = response.data.result.data;
-      console.log(owners);
+      // console.log(owners);
       const distributeRentalAmountTx =
         await rentalPropertiesReadWrite.distributeRentAmount(tokenId, owners);
       const distributeRentalAmountTxFinality =
