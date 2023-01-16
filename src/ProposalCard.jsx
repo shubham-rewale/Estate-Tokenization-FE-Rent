@@ -72,9 +72,13 @@ const ProposalCard = (props) => {
         tokenId,
         proposal.onChainProposalId
       );
-      const txFinality = await tx.wait();
-
-      alert("executed");
+      const executeTxFinality = await tx.wait();
+      if (executeTxFinality.blockNumber != null) {
+        alert("Successfully Executed Proposal");
+        window.location.reload(false);
+      } else {
+        alert("something Went Wrong, try again");
+      }
     } catch (err) {
       if (err.code === 4001) {
         window.alert("User Rejected Metamask Connection");
