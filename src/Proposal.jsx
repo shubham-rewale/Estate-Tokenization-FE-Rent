@@ -33,34 +33,38 @@ const Proposal = () => {
 
         const proposalCounterHex = await dao.proposalCounter(tokenId);
         const proposalCounterNumber = Number(proposalCounterHex._hex);
-        let tmp = [];
+        let proposalsFromContract = [];
         for (
           let proposalId = 0;
           proposalId < proposalCounterNumber;
           proposalId++
         ) {
           const data = await dao.proposals(tokenId, proposalId);
-          const proposalState = await dao.getProposalState(tokenId, proposalId);
+          if (data.amount != "0") {
+            const proposalState = await dao.getProposalState(
+              tokenId,
+              proposalId
+            );
 
-          const proposal = {
-            tokenId,
-            onChainProposalId: proposalId,
-            proposalProofLink: data.proposalProof,
-            withDrawFundsFrom:
-              data.withdrawFundsFrom === 0 ? "Maintenance" : "Vacancy",
-            amount: ethers.utils.formatEther(BigInt(data.amount).toString()),
-            proposalState:
-              proposalState === 0
-                ? "Pending"
-                : proposalState === 1
-                ? "Active"
-                : "Execution",
-          };
-          tmp.push(proposal);
-          // console.log(data);
+            const proposal = {
+              tokenId,
+              onChainProposalId: proposalId,
+              proposalProofLink: data.proposalProof,
+              withDrawFundsFrom:
+                data.withdrawFundsFrom === 0 ? "Maintenance" : "Vacancy",
+              amount: ethers.utils.formatEther(BigInt(data.amount).toString()),
+              proposalState:
+                proposalState === 0
+                  ? "Pending"
+                  : proposalState === 1
+                  ? "Active"
+                  : "Execution",
+            };
+            proposalsFromContract.push(proposal);
+          }
         }
-        // console.log(tmp);
-        setProposals(tmp);
+
+        setProposals(proposalsFromContract);
       }
     })();
   }, []);
@@ -134,6 +138,7 @@ const Proposal = () => {
         });
         if (response.status === 201) {
           alert("Submitted Proposal Successfully");
+          window.location.reload(false);
         } else {
           alert("Something Went Wrong, Try again");
         }
