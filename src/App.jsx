@@ -18,7 +18,7 @@ function App() {
             element={<PropertyDetails />}
           />
           <Route
-            path="/proposalsDetails/property/:tokenId"
+            path="/proposals/property/:tokenId"
             exact
             element={<Proposal />}
           />
