@@ -10,6 +10,7 @@ import AxiosInstance from "./utils/axiosInstance";
 
 const Proposal = () => {
   const [proposalDetails, setproposalDetails] = useState({
+    proposalTitle: "",
     proposalProof: "",
     amount: "",
     isVacancyReserve: true,
@@ -24,48 +25,10 @@ const Proposal = () => {
 
   useEffect(() => {
     (async () => {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const network = await provider.getNetwork();
-      if (network.chainId != 80001) {
-        window.alert("Connect to Mumbai network");
-      } else {
-        const dao = new ethers.Contract(MUMBAI_ADDRESS, ABI, provider);
-
-        const proposalCounterHex = await dao.proposalCounter(tokenId);
-        const proposalCounterNumber = Number(proposalCounterHex._hex);
-        let proposalsFromContract = [];
-        for (
-          let proposalId = 0;
-          proposalId < proposalCounterNumber;
-          proposalId++
-        ) {
-          const data = await dao.proposals(tokenId, proposalId);
-          if (data.amount != "0") {
-            const proposalState = await dao.getProposalState(
-              tokenId,
-              proposalId
-            );
-
-            const proposal = {
-              tokenId,
-              onChainProposalId: proposalId,
-              proposalProofLink: data.proposalProof,
-              withDrawFundsFrom:
-                data.withdrawFundsFrom === 0 ? "Maintenance" : "Vacancy",
-              amount: ethers.utils.formatEther(BigInt(data.amount).toString()),
-              proposalState:
-                proposalState === 0
-                  ? "Pending"
-                  : proposalState === 1
-                  ? "Active"
-                  : "Execution",
-            };
-            proposalsFromContract.push(proposal);
-          }
-        }
-
-        setProposals(proposalsFromContract);
-      }
+      const response = await AxiosInstance(
+        `api/proposal/proposals?tokenId=${tokenId}`
+      );
+      setProposals(response.data.result.data);
     })();
   }, []);
 
@@ -112,14 +75,13 @@ const Proposal = () => {
       const response = await AxiosInstance(
         `/api/vote/getVoters?tokenId=${tokenId}&target=voterRootHash`
       );
-      const ownerRootHash = response.data.result.data;
-
+      const ownersRootHash = response.data.result.data;
       const tx = await daoReadWrite.propose(
         tokenId,
         proposeAmount,
         withDrawFundsFrom,
         proposalDetails.proposalProof,
-        ownerRootHash
+        ownersRootHash
       );
       const txFinality = await tx.wait();
       if (txFinality.blockNumber === null) {
@@ -132,9 +94,14 @@ const Proposal = () => {
             proposalId = Number(event.args.proposalId._hex);
           }
         });
-        let response = await AxiosInstance.post("/api/propose/add", {
+        let response = await AxiosInstance.post("/api/proposal/add", {
           tokenId,
           onChainProposalId: proposalId,
+          proposalProof: proposalDetails.proposalProof,
+          proposalAmount: proposalDetails.amount,
+          withdrawFundsFrom:
+            withDrawFundsFrom === 0 ? "Maintenance" : "Vacancy",
+          proposalTitle: proposalDetails.proposalTitle,
         });
         if (response.status === 201) {
           alert("Submitted Proposal Successfully");
@@ -164,6 +131,32 @@ const Proposal = () => {
           </p>
           <div className="mt-16">
             <form onSubmit={handleProposalSubmit}>
+              <div className="form-group mb-6">
+                <label
+                  htmlFor="exampleInputName2"
+                  className="form-label inline-block mb-2 text-gray-400"
+                >
+                  Enter a Proposal Title
+                </label>
+                <input
+                  type="text"
+                  className="form-control
+        block
+        w-full
+        px-3
+        py-1.5
+       text-white
+        bg-gray-900 
+        rounded"
+                  id="exampleInputName2"
+                  name="proposalTitle"
+                  value={proposalDetails.proposalTitle}
+                  onChange={handleProposalForm}
+                  placeholder="proposal title"
+                  required
+                />
+              </div>
+
               <div className="form-group mb-6">
                 <label
                   htmlFor="exampleInputName2"
@@ -274,14 +267,16 @@ const Proposal = () => {
             Current Proposals
           </p>
         </div>
-        <div className="proposalContainer p-3 flex flex-wrap">
-          {proposals ? (
-            proposals.map((ele, idx) => (
-              <ProposalCard key={idx} proposal={ele} />
-            ))
-          ) : (
-            <p className="w-fit mx-auto text-5xl p-4">Loading...</p>
-          )}
+        <div className="proposalContainer flex justify-center">
+          <div className=" p-3">
+            {proposals ? (
+              proposals.map((ele, idx) => (
+                <ProposalCard key={idx} proposal={ele} />
+              ))
+            ) : (
+              <p className="w-fit mx-auto text-5xl p-4">Loading...</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
