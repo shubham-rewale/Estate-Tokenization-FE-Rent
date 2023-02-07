@@ -4,6 +4,7 @@ import Proposal from "./Proposal";
 import RentOperationDetails from "./RentOperationDetails";
 import ReserveOperationDetails from "./ReserveOperationsDetails";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ProposalDetails from "./ProposalDetails";
 
 function App() {
   return (
@@ -17,10 +18,16 @@ function App() {
             element={<PropertyDetails />}
           />
           <Route
-            path="/proposals/property/:tokenId"
+            path="/proposalsDetails/property/:tokenId"
             exact
             element={<Proposal />}
           />
+          <Route
+            path="/property/:tokenId/proposal/:onChainProposalId"
+            exact
+            element={<ProposalDetails />}
+          />
+
           <Route
             path="/rentOperations/:tokenId"
             exact
