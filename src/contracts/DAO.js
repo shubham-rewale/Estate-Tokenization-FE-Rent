@@ -1,4 +1,4 @@
-const MUMBAI_ADDRESS = "0xD3545dB896C1441573c96c428a6bcbB33Af28A98";
+const MUMBAI_ADDRESS = "0x35890744DA5E03E3dDB9A6Da44AB05a458b149Ff";
 const ABI = [
   {
     inputs: [],
@@ -301,6 +301,35 @@ const ABI = [
         internalType: "enum DAO.ProposalState",
         name: "state",
         type: "uint8",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_proposalId",
+        type: "uint256",
+      },
+    ],
+    name: "getVotingDetail",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -618,6 +647,11 @@ const ABI = [
         name: "_voterMerkleProof",
         type: "bytes32[]",
       },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
     ],
     name: "vote",
     outputs: [],
@@ -666,19 +700,14 @@ const ABI = [
     name: "votings",
     outputs: [
       {
-        internalType: "uint64",
+        internalType: "uint256",
         name: "forVote",
-        type: "uint64",
+        type: "uint256",
       },
       {
-        internalType: "uint64",
+        internalType: "uint256",
         name: "against",
-        type: "uint64",
-      },
-      {
-        internalType: "uint64",
-        name: "abstain",
-        type: "uint64",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
