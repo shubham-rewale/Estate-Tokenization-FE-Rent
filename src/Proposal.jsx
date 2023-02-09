@@ -18,7 +18,7 @@ const Proposal = () => {
   });
 
   const [proposals, setProposals] = useState();
-
+  const [reloadComponent, setReloadComponent] = useState(true);
   const location = useLocation();
   //fetching the token id from url
   const tokenId = location.pathname.split("/")[3];
@@ -30,7 +30,7 @@ const Proposal = () => {
       );
       setProposals(response.data.result.data);
     })();
-  }, []);
+  }, [reloadComponent]);
 
   const handleProposalForm = (e) => {
     // console.log(e.target.name, e.target.value);
@@ -89,9 +89,26 @@ const Proposal = () => {
       } else {
         // get the proposal id
         let proposalId;
+        // block number at time of proposal creation
+        let proposalInitiateBlockNumber;
+        let votingStartBlockNumber;
+        let votingEndBlockNumber;
+        let proposalInitiateTimeStamp;
+        let totalTokenSupply;
+        let quorumVote;
         txFinality.events.forEach((event) => {
           if (event.event === "proposalInitiated") {
             proposalId = Number(event.args.proposalId._hex);
+            proposalInitiateBlockNumber = Number(
+              event.args.presentBlockNumber._hex
+            );
+            votingStartBlockNumber = Number(event.args.votingWillStartAt._hex);
+            votingEndBlockNumber = Number(event.args.votingWillEndAt._hex);
+            proposalInitiateTimeStamp = Number(
+              event.args.proposalInitiatedAt._hex
+            );
+            totalTokenSupply = Number(event.args.totalTokenSupply._hex);
+            quorumVote = Number(event.args.quorumVote._hex);
           }
         });
         let response = await AxiosInstance.post("/api/proposal/add", {
@@ -102,10 +119,23 @@ const Proposal = () => {
           withdrawFundsFrom:
             withDrawFundsFrom === 0 ? "Maintenance" : "Vacancy",
           proposalTitle: proposalDetails.proposalTitle,
+          proposalInitiateBlockNumber,
+          votingStartBlockNumber,
+          votingEndBlockNumber,
+          proposalInitiateTimeStamp,
+          totalTokenSupply,
+          quorumVote,
         });
         if (response.status === 201) {
           alert("Submitted Proposal Successfully");
-          window.location.reload(false);
+          setReloadComponent(!reloadComponent);
+          setproposalDetails({
+            proposalTitle: "",
+            proposalProof: "",
+            amount: "",
+            isVacancyReserve: true,
+            isMaintenanceReserve: false,
+          });
         } else {
           alert("Something Went Wrong, Try again");
         }
