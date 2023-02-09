@@ -7,7 +7,7 @@ const ProposalCard = (props) => {
   return (
     <Link
       to={`/property/${tokenId}/proposal/${proposal.onChainProposalId}`}
-      state={proposal}
+      state={proposal.proposalIdHash}
     >
       <div className="ProposalCard w-fit m-3 p-4 border-2 border-white flex">
         <p>{proposal.onChainProposalId}</p>
