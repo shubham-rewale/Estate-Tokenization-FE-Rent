@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const AxiosInstance = axios.create({
-  baseURL: "https://estate-tokenization-be-0ljo.onrender.com/",
+  baseURL: import.meta.env.VITE_LOCAL_SERVER_ADDRESS,
 });
 
 export default AxiosInstance;
