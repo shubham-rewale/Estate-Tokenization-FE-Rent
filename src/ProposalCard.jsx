@@ -15,10 +15,14 @@ const ProposalCard = (props) => {
         <p
           className={`${
             proposal.proposalState === "Execution"
-              ? "text-green-500"
+              ? "text-orange-500"
               : proposal.proposalState === "Pending"
               ? " text-yellow-300"
-              : " text-blue-600"
+              : proposal.proposalState === "Active"
+              ? " text-blue-600"
+              : proposal.proposalState === "Executed"
+              ? "text-green-500"
+              : "text-red-500"
           } `}
         >
           {proposal.proposalState}
