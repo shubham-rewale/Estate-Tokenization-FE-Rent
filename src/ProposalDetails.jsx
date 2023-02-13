@@ -32,7 +32,10 @@ const ProposalDetails = () => {
       setVotingDetails((prev) => {
         return {
           ...prev,
-          forPercentage: (proposal.totalForVote / proposal.quorumVote) * 100,
+          forPercentage:
+            proposal.totalForVote <= proposal.quorumVote
+              ? (proposal.totalForVote / proposal.quorumVote) * 100
+              : 100,
           againstPercentage:
             (proposal.totalAgainstVote / proposal.totalTokenSupply) * 100,
         };
@@ -96,9 +99,10 @@ const ProposalDetails = () => {
             voter,
           });
           let updateProposalResponse = await AxiosInstance.post(
-            `api/proposal/updateVotingDetails`,
+            `api/proposal/updatePropertyDetails`,
             {
               proposalIdHash: proposal.proposalIdHash,
+              updateField: "votingDetails",
               totalForVote,
               totalAgainstVote,
             }
@@ -138,13 +142,29 @@ const ProposalDetails = () => {
       const [provider, accounts, signer] = await connectToMetamask();
       const daoReadWrite = new ethers.Contract(MUMBAI_ADDRESS, ABI, signer);
       const tx = await daoReadWrite.execute(
-        tokenId,
+        proposal.tokenId,
         proposal.onChainProposalId
       );
-      const executeTxFinality = await tx.wait();
-      if (executeTxFinality.blockNumber != null) {
+      const txFinality = await tx.wait();
+      if (txFinality.blockNumber != null) {
+        let result;
+
+        txFinality.events.forEach((event) => {
+          if (event.event === "executed") {
+            result = event.args.result;
+          }
+        });
+        let updateProposalResponse = await AxiosInstance.post(
+          `api/proposal/updatePropertyDetails`,
+          {
+            proposalIdHash: proposal.proposalIdHash,
+            updateField: "executionField",
+            result: result ? "success" : "failed",
+            isExecuted: true,
+          }
+        );
         alert("Successfully Executed Proposal");
-        window.location.reload(false);
+        setReloadComponent(!reloadComponent);
       } else {
         alert("something Went Wrong, try again");
       }
@@ -163,113 +183,144 @@ const ProposalDetails = () => {
           <div className="text-5xl text-gray-500">Loading ...</div>
         </div>
       ) : (
-        <div className="mainContainer w-fit p-10 mx-auto">
-          <p className="w-fit text-6xl  text-gray-500 mx-auto mb-6">
-            Proposal Details
-          </p>
-          <div className="proposalDetailsContainer [&>p]:text-3xl [&>p]:w-fit [&>p]:mb-3 [&>p]:text-gray-300">
-            <p className=" ">Title : {proposal.proposalTitle}</p>
-            <p className=" ">ProposalId : {proposal.onChainProposalId}</p>
-            <p className=" ">Proof : {proposal.proposalProof}</p>
-            <p className=" ">From : {proposal.withdrawFundsFrom}</p>
-            <p className=" ">Amount : {proposal.proposalAmount} Ether</p>
-            <p className="">
-              State :{" "}
-              <span
-                className={`${
-                  proposal.proposalState === "Execution"
-                    ? "text-green-500"
-                    : proposal.proposalState === "Pending"
-                    ? " text-yellow-300"
-                    : " text-blue-600"
-                } `}
-              >
-                {proposal.proposalState}
-              </span>
-            </p>
-          </div>
-          <p className="w-fit text-6xl  text-gray-500 mx-auto mb-6">
-            voting Details
-          </p>
-
-          <div className="votingContainer">
-            <div className="forVote">
-              <div className="flex justify-between mb-1">
-                <span className="text-base font-medium text-green-700 dark:text-white">
-                  For Vote
-                </span>
-                <span className="text-sm font-medium text-green-700 dark:text-white">
-                  {proposal.totalForVote}/{proposal.quorumVote}
-                </span>
-              </div>
-              <div className="w-full bg-gray-300 rounded-full h-2.5 dark:bg-gray-700">
-                <div
-                  className="bg-green-700 h-2.5 rounded-full"
-                  style={{ width: votingDetails.forPercentage + "%" }}
-                ></div>
+        <div className="">
+          <div className="DetailsAndVotingContainer flex pt-6">
+            <div className="DetailsContainer flex-1">
+              <p className="w-fit text-6xl  text-gray-500 mx-auto mb-6">
+                Proposal Details
+              </p>
+              <div className="proposalDetailsContainer w-fit mx-auto mt-16 [&>p]:text-3xl [&>p]:w-fit [&>p]:mb-3 [&>p]:text-gray-300">
+                <p className=" ">Title : {proposal.proposalTitle}</p>
+                <p className=" ">ProposalId : {proposal.onChainProposalId}</p>
+                <p className=" ">Proof : {proposal.proposalProof}</p>
+                <p className=" ">From : {proposal.withdrawFundsFrom}</p>
+                <p className=" ">Amount : {proposal.proposalAmount} Ether</p>
+                <p className="">
+                  State :{" "}
+                  <span
+                    className={`${
+                      proposal.proposalState === "Execution"
+                        ? "text-orange-500"
+                        : proposal.proposalState === "Pending"
+                        ? " text-yellow-300"
+                        : proposal.proposalState === "Active"
+                        ? " text-blue-600"
+                        : proposal.proposalState === "Executed"
+                        ? "text-green-500"
+                        : "text-red-500" //rejected
+                    } `}
+                  >
+                    {proposal.proposalState}
+                  </span>
+                </p>
               </div>
             </div>
+            <div className="VotingContainer flex-1">
+              <p className="w-fit text-6xl  text-gray-500 mx-auto mb-6">
+                voting Details
+              </p>
 
-            <div className="againstVote my-4">
-              <div className="flex justify-between m-1">
-                <span className="text-base font-medium text-red-700 dark:text-white">
-                  Against Vote
-                </span>
-                {/* <span className="text-sm font-medium text-red-700 dark:text-white">
+              <div className="votingDetailsContainer w-fit mx-auto">
+                <div className="forVote">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-base font-medium text-green-700 dark:text-white">
+                      For Vote
+                    </span>
+                    <span className="text-sm font-medium text-green-700 dark:text-white">
+                      {proposal.totalForVote}/{proposal.quorumVote}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-300 rounded-full h-2.5 dark:bg-gray-700">
+                    <div
+                      className="bg-green-700 h-2.5 rounded-full"
+                      style={{ width: votingDetails.forPercentage + "%" }}
+                    ></div>
+                  </div>
+                </div>
+
+                <div className="againstVote my-4">
+                  <div className="flex justify-between m-1">
+                    <span className="text-base font-medium text-red-700 dark:text-white">
+                      Against Vote
+                    </span>
+                    {/* <span className="text-sm font-medium text-red-700 dark:text-white">
                   {10}%
                 </span> */}
-              </div>
-              <div className="w-full bg-gray-300 rounded-full h-2.5 dark:bg-gray-700">
+                  </div>
+                  <div className="w-full bg-gray-300 rounded-full h-2.5 dark:bg-gray-700">
+                    <div
+                      className="bg-red-600 h-2.5 rounded-full"
+                      style={{ width: votingDetails.againstPercentage + "%" }}
+                    ></div>
+                  </div>
+                </div>
                 <div
-                  className="bg-red-600 h-2.5 rounded-full"
-                  style={{ width: votingDetails.againstPercentage + "%" }}
-                ></div>
-              </div>
-            </div>
-            <div
-              className={`timeDetails text-xl mt-10 ${
-                proposal.proposalState === "Execution"
-                  ? "text-gray-500"
-                  : proposal.proposalState === "Pending"
-                  ? " text-yellow-300"
-                  : " text-blue-600"
-              } `}
-            >
-              {proposal.proposalState === "Pending"
-                ? `Voting will start at ${proposal.votingStartTime}`
-                : proposal.proposalState === "Active"
-                ? `Voting will end at ${proposal.votingEndTime}`
-                : "Voting period is over"}
-            </div>
-            <div className="votingButtons">
-              <div className="vote py-10 flex flex-col items-center border-b-2 border-gray-400">
-                <button
-                  name="1"
-                  className=" block my-3 p-2 w-52 text-2xl rounded border-2 border-green-500 hover:bg-green-500 hover:text-black"
-                  onClick={handleVoteClick}
+                  className={`timeDetails text-2xl mt-10 ${
+                    proposal.proposalState === "Pending"
+                      ? " text-yellow-300"
+                      : proposal.proposalState === "Active"
+                      ? " text-blue-600"
+                      : "text-gray-500" //over
+                  } `}
                 >
-                  Vote For
-                </button>
-                <button
-                  name="0"
-                  className="block my-3 p-2 w-52 text-2xl rounded border-2 border-red-500 hover:bg-red-500 hover:text-black"
-                  onClick={handleVoteClick}
-                >
-                  Vote Against
-                </button>
-              </div>
+                  {proposal.proposalState === "Pending"
+                    ? `Voting will start at ${proposal.votingStartTimeIST}`
+                    : proposal.proposalState === "Active"
+                    ? `Voting will end at ${proposal.votingEndTimeIST}`
+                    : "Voting Period Is over"}
+                </div>
+                <div className="votingButtons">
+                  <div className="vote py-10 flex flex-col items-center border-b-2 border-gray-400">
+                    <button
+                      name="1"
+                      className=" block my-3 p-2 w-52 text-2xl rounded border-2 border-green-500 hover:bg-green-500 hover:text-black"
+                      onClick={handleVoteClick}
+                    >
+                      Vote For
+                    </button>
+                    <button
+                      name="0"
+                      className="block my-3 p-2 w-52 text-2xl rounded border-2 border-red-500 hover:bg-red-500 hover:text-black"
+                      onClick={handleVoteClick}
+                    >
+                      Vote Against
+                    </button>
+                  </div>
 
-              <div className="execute mt-3 text-gray-400">
-                <p>Note :- Only Property Manager can execute a proposal</p>
-                <div className="executeButton mt-3 flex justify-center">
-                  <button
-                    className="block p-2 w-52 border-2 rounded border-cyan-700 hover:bg-cyan-700 hover:text-black"
-                    onClick={handleExecute}
-                  >
-                    Execute
-                  </button>
+                  <div className="execute mt-3 text-gray-400">
+                    <p>Note :- Only Property Manager can execute a proposal</p>
+                    <div className="executeButton mt-3 flex justify-center">
+                      <button
+                        className="block p-2 w-52 border-2 rounded border-cyan-700 hover:bg-cyan-700 hover:text-black"
+                        onClick={handleExecute}
+                      >
+                        Execute
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+          <div className="tokenOwnerAndBalancesContainer mt-10 pb-10">
+            <div className="w-fit text-6xl  text-gray-500 mx-auto mb-6">
+              Token Holders
+            </div>
+            <div className="ownersContainer w-fit mx-auto ">
+              <div className="p-3 text-gray-300 text-xl border-b-2 border-b-gray">
+                <span className="mr-10 px-44 ">Addresses</span>
+                <span>Balances</span>
+              </div>
+              {proposal.ownerListAtProposal.map((addressAndBalance, idx) => {
+                return (
+                  <div key={idx} className="p-3 text-gray-300 text-xl ">
+                    <span className="mr-3 w-fit px-2">
+                      {addressAndBalance.Address}
+                    </span>
+                    <span>{addressAndBalance.Balance}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -279,118 +330,3 @@ const ProposalDetails = () => {
 };
 
 export default ProposalDetails;
-
-{
-  /* <div className="PropertyDetails min-h-screen bg-black text-white">
-      <div className="mainContainer w-fit p-10 mx-auto">
-        <p className="w-fit text-6xl  text-gray-500 mx-auto mb-6">
-          Proposal Details
-        </p>
-        <div className="proposalDetailsContainer [&>p]:text-3xl [&>p]:w-fit [&>p]:mb-3 [&>p]:text-gray-300">
-          <p className=" ">Title : {proposal.proposalTitle}</p>
-          <p className=" ">ProposalId : {proposal.onChainProposalId}</p>
-          <p className=" ">Proof : {proposal.proposalProof}</p>
-          <p className=" ">From : {proposal.withdrawFundsFrom}</p>
-          <p className=" ">Amount : {proposal.proposalAmount} Ether</p>
-          <p className="">
-            State :{" "}
-            <span
-              className={`${
-                proposal.proposalState === "Execution"
-                  ? "text-green-500"
-                  : proposal.proposalState === "Pending"
-                  ? " text-yellow-300"
-                  : " text-blue-600"
-              } `}
-            >
-              {proposal.proposalState}
-            </span>
-          </p>
-        </div>
-        <p className="w-fit text-6xl  text-gray-500 mx-auto mb-6">
-          voting Details
-        </p>
-
-        <div className="votingContainer">
-          <div className="forVote">
-            <div className="flex justify-between mb-1">
-              <span className="text-base font-medium text-green-700 dark:text-white">
-                For Vote
-              </span>
-              <span className="text-sm font-medium text-green-700 dark:text-white">
-                {forPercentage}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-300 rounded-full h-2.5 dark:bg-gray-700">
-              <div
-                className="bg-green-700 h-2.5 rounded-full"
-                style={{ width: forPercentage + "%" }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="againstVote my-4">
-            <div className="flex justify-between m-1">
-              <span className="text-base font-medium text-red-700 dark:text-white">
-                Against Vote
-              </span>
-              <span className="text-sm font-medium text-red-700 dark:text-white">
-                {againstPercentage}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-300 rounded-full h-2.5 dark:bg-gray-700">
-              <div
-                className="bg-red-600 h-2.5 rounded-full"
-                style={{ width: againstPercentage + "%" }}
-              ></div>
-            </div>
-          </div>
-          <div
-            className={`timeDetails text-xl mt-10${
-              proposal.proposalState === "Execution"
-                ? "text-green-500"
-                : proposal.proposalState === "Pending"
-                ? " text-yellow-300"
-                : " text-blue-600"
-            } `}
-          >
-            {proposal.proposalState === "Pending"
-              ? `Voting will start at ${proposal.votingStartTime}`
-              : proposal.proposalState === "Active"
-              ? `Voting will end at ${proposal.votingEndTime}`
-              : "Voting period is over"}
-          </div>
-          <div className="votingButtons">
-            <div className="vote py-10 flex flex-col items-center border-b-2 border-gray-400">
-              <button
-                name="1"
-                className=" block my-3 p-2 w-52 text-2xl rounded border-2 border-green-500 hover:bg-green-500 hover:text-black"
-                onClick={handleVoteClick}
-              >
-                Vote For
-              </button>
-              <button
-                name="0"
-                className="block my-3 p-2 w-52 text-2xl rounded border-2 border-red-500 hover:bg-red-500 hover:text-black"
-                onClick={handleVoteClick}
-              >
-                Vote Against
-              </button>
-            </div>
-
-            <div className="execute mt-3 text-gray-400">
-              <p>Note :- Only Property Manager can execute a proposal</p>
-              <div className="executeButton mt-3 flex justify-center">
-                <button
-                  className="block p-2 w-52 border-2 rounded border-cyan-700 hover:bg-cyan-700 hover:text-black"
-                  onClick={handleExecute}
-                >
-                  Execute
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div> */
-}
