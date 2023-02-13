@@ -90,23 +90,17 @@ const Proposal = () => {
         // get the proposal id
         let proposalId;
         // block number at time of proposal creation
-        let proposalInitiateBlockNumber;
-        let votingStartBlockNumber;
-        let votingEndBlockNumber;
-        let proposalInitiateTimeStamp;
+        let proposalInitiatedAt;
+        let votingStartAt;
+        let votingEndAt;
         let totalTokenSupply;
         let quorumVote;
         txFinality.events.forEach((event) => {
           if (event.event === "proposalInitiated") {
             proposalId = Number(event.args.proposalId._hex);
-            proposalInitiateBlockNumber = Number(
-              event.args.presentBlockNumber._hex
-            );
-            votingStartBlockNumber = Number(event.args.votingWillStartAt._hex);
-            votingEndBlockNumber = Number(event.args.votingWillEndAt._hex);
-            proposalInitiateTimeStamp = Number(
-              event.args.proposalInitiatedAt._hex
-            );
+            proposalInitiatedAt = Number(event.args.proposalInitiatedAt._hex);
+            votingStartAt = Number(event.args.votingStartAt._hex);
+            votingEndAt = Number(event.args.votingEndAt._hex);
             totalTokenSupply = Number(event.args.totalTokenSupply._hex);
             quorumVote = Number(event.args.quorumVote._hex);
           }
@@ -119,10 +113,9 @@ const Proposal = () => {
           withdrawFundsFrom:
             withDrawFundsFrom === 0 ? "Maintenance" : "Vacancy",
           proposalTitle: proposalDetails.proposalTitle,
-          proposalInitiateBlockNumber,
-          votingStartBlockNumber,
-          votingEndBlockNumber,
-          proposalInitiateTimeStamp,
+          proposalInitiatedAt,
+          votingStartAt,
+          votingEndAt,
           totalTokenSupply,
           quorumVote,
         });
