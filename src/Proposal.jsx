@@ -1,12 +1,12 @@
 import { ethers } from "ethers";
-
-import { BigNumber } from "bignumber.js";
 import connectToMetamask from "./utils/connectTometamask";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ABI, MUMBAI_ADDRESS } from "./contracts/DAO";
 import ProposalCard from "./ProposalCard";
 import AxiosInstance from "./utils/axiosInstance";
+import { LoadingModal } from "./Modal";
+import loaderGIF from "./assets/loader.gif";
 
 const Proposal = () => {
   const [proposalDetails, setproposalDetails] = useState({
@@ -18,6 +18,7 @@ const Proposal = () => {
   });
 
   const [proposals, setProposals] = useState();
+  const [showLoader, setShowLoader] = useState(false);
   const [reloadComponent, setReloadComponent] = useState(true);
   const location = useLocation();
   //fetching the token id from url
@@ -56,6 +57,7 @@ const Proposal = () => {
   };
   const handleProposalSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const [provider, accounts, signer] = await connectToMetamask();
       //checking the network
@@ -83,6 +85,7 @@ const Proposal = () => {
         proposalDetails.proposalProof,
         ownersRootHash
       );
+      setShowLoader(true);
       const txFinality = await tx.wait();
       if (txFinality.blockNumber === null) {
         alert("Transaction Failed");
@@ -120,7 +123,7 @@ const Proposal = () => {
           quorumVote,
         });
         if (response.status === 201) {
-          alert("Submitted Proposal Successfully");
+          // alert("Submitted Proposal Successfully");
           setReloadComponent(!reloadComponent);
           setproposalDetails({
             proposalTitle: "",
@@ -140,6 +143,7 @@ const Proposal = () => {
         console.log(err);
       }
     }
+    setShowLoader(false);
   };
 
   return (
@@ -302,6 +306,17 @@ const Proposal = () => {
           </div>
         </div>
       </div>
+      <LoadingModal show={showLoader}>
+        <div
+          className="flex justify-center items-center flex-col"
+          style={{ height: "100%" }}
+        >
+          <div>
+            <img src={loaderGIF} alt="blockGIF" style={{ width: "50px" }} />
+          </div>
+          <p className=" text-2xl mt-10">Confirming & Storing</p>
+        </div>
+      </LoadingModal>
     </div>
   );
 };
