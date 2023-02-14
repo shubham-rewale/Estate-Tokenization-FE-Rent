@@ -9,7 +9,10 @@ import {
   VacancyReserveABI,
   Vacancy_Mumbai_Address,
 } from "./contracts/VacancyReserve";
+import AxiosInstance from "./utils/axiosInstance";
 import connectToMetamask from "./utils/connectTometamask";
+import { LoadingModal } from "./Modal";
+import loaderGIF from "./assets/loader.gif";
 
 const ReserveOperationsDetails = () => {
   const [ReserveAmounts, setReserveAmounts] = useState({
@@ -27,70 +30,36 @@ const ReserveOperationsDetails = () => {
     propertyVacancyReserve: "0",
     propertyVacancyReserveDeficit: "0",
   });
+  const [reloadComponent, setReloadComponent] = useState(true);
+  const [showLoader, setShowLoader] = useState(false);
 
   const location = useLocation();
   //fetching the token id from url
   const tokenId = location.pathname.split("/")[2];
   useEffect(() => {
     (async () => {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const network = await provider.getNetwork();
-      if (network.chainId != 80001) {
-        window.alert("Connect to Mumbai network");
-      } else {
-        const maintenanceReserve = new ethers.Contract(
-          Maintenance_Mumbai_Address,
-          MaintenanceReserveABI,
-          provider
-        );
-        const vacancyReserve = new ethers.Contract(
-          Vacancy_Mumbai_Address,
-          VacancyReserveABI,
-          provider
-        );
+      const response = await AxiosInstance(
+        `api/property/getReservesDetails/${tokenId}`
+      );
+      const result = response.data;
+      setMaintenanceReserveData({
+        propertyMaintenanceReserveDeficit:
+          result.maintenanceReserveDetails.maintenanceReserveDeficit,
+        propertyMaintenanceReserve:
+          result.maintenanceReserveDetails.maintenanceReserve,
+        propertyMaintenanceReserveCap:
+          result.maintenanceReserveDetails.maintenanceReserveCap,
+      });
 
-        const maintenanceReserveResult =
-          await maintenanceReserve.checkMaintenanceReserve(tokenId);
-
-        const vacancyReserveResult = await vacancyReserve.checkVacancyReserve(
-          tokenId
-        );
-        setMaintenanceReserveData({
-          propertyMaintenanceReserveDeficit: ethers.utils.formatEther(
-            Number(
-              maintenanceReserveResult._propertyMaintenanceReserveDeficit._hex
-            ).toString()
-          ),
-          propertyMaintenanceReserve: ethers.utils.formatEther(
-            Number(
-              maintenanceReserveResult._propertyMaintenanceReserve._hex
-            ).toString()
-          ),
-          propertyMaintenanceReserveCap: ethers.utils.formatEther(
-            Number(
-              maintenanceReserveResult._propertyMaintenanceReserveCap._hex
-            ).toString()
-          ),
-        });
-
-        setVacancyReserveData({
-          propertyVacancyReserveDeficit: ethers.utils.formatEther(
-            Number(
-              vacancyReserveResult._propertyVacancyReserveDeficit._hex
-            ).toString()
-          ),
-          propertyVacancyReserve: ethers.utils.formatEther(
-            Number(vacancyReserveResult._propertyVacancyReserve._hex).toString()
-          ),
-          propertyVacancyReserveCap: ethers.utils.formatEther(
-            Number(
-              vacancyReserveResult._propertyVacancyReserveCap._hex
-            ).toString()
-          ),
-        });
-      }
+      setVacancyReserveData({
+        propertyVacancyReserveDeficit:
+          result.vacancyReserveDetails.vacancyReserveDeficit,
+        propertyVacancyReserve: result.vacancyReserveDetails.vacancyReserve,
+        propertyVacancyReserveCap:
+          result.vacancyReserveDetails.vacancyReserveCap,
+      });
     })();
-  }, []);
+  }, [reloadComponent]);
   const handleAmountForm = (e) => {
     setReserveAmounts((prev) => {
       return {
@@ -118,20 +87,22 @@ const ReserveOperationsDetails = () => {
         tokenId,
         { value: restoreMaintenanceReserveAmount }
       );
+      setShowLoader(true);
       const restoreTxFinality = await tx.wait();
       if (restoreTxFinality.blockNumber != null) {
         alert("Successfully Restored Maintenance Reserve");
-        window.location.reload(false);
+        setReloadComponent(!reloadComponent);
       } else {
         alert("something Went Wrong, try again");
       }
     } catch (err) {
       if (err.code === 4001) {
-        window.alert("User Rejected Metamask Connection");
+        alert("User Rejected Metamask Connection");
       } else {
         console.log(err);
       }
     }
+    setShowLoader(false);
   };
 
   const handleVacancyReserveRestore = async (e) => {
@@ -151,20 +122,22 @@ const ReserveOperationsDetails = () => {
       const tx = await vacancyReserveReadWrite.restoreVacancyReserve(tokenId, {
         value: restoreVacancyReserveAmount,
       });
+      setShowLoader(true);
       const restoreTxFinality = await tx.wait();
       if (restoreTxFinality.blockNumber != null) {
         alert("Successfully Restored Vacancy Reserve");
-        window.location.reload(false);
+        setReloadComponent(!reloadComponent);
       } else {
         alert("something Went Wrong, try again");
       }
     } catch (err) {
       if (err.code === 4001) {
-        window.alert("User Rejected Metamask Connection");
+        alert("User Rejected Metamask Connection");
       } else {
         console.log(err);
       }
     }
+    setShowLoader(false);
   };
   return (
     <div className="ReserveOperationsDetails min-h-screen bg-black text-white">
@@ -303,6 +276,17 @@ const ReserveOperationsDetails = () => {
           </div>
         </div>
       </div>
+      <LoadingModal show={showLoader}>
+        <div
+          className="flex justify-center items-center flex-col"
+          style={{ height: "100%" }}
+        >
+          <div>
+            <img src={loaderGIF} alt="blockGIF" style={{ width: "50px" }} />
+          </div>
+          <p className=" text-2xl mt-10">This will take seconds</p>
+        </div>
+      </LoadingModal>
     </div>
   );
 };
