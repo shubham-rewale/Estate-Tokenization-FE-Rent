@@ -4,6 +4,8 @@ import { ethers } from "ethers";
 import { ABI, MUMBAI_ADDRESS } from "./contracts/DAO";
 import AxiosInstance from "./utils/axiosInstance";
 import connectToMetamask from "./utils/connectTometamask";
+import { LoadingModal } from "./Modal";
+import loaderGIF from "./assets/loader.gif";
 
 const ProposalDetails = () => {
   const location = useLocation();
@@ -14,6 +16,7 @@ const ProposalDetails = () => {
     againstPercentage: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [showLoader, setShowLoader] = useState(false);
   const [reloadComponent, setReloadComponent] = useState(true);
   // const proposal = location.state;
   // console.log(proposal);
@@ -76,6 +79,7 @@ const ProposalDetails = () => {
             result.proof,
             result.balanceAtProposalTime.Balance
           );
+          setShowLoader(true);
           await tx.wait();
           const txFinality = await tx.wait();
           // console.log(txFinality);
@@ -114,20 +118,6 @@ const ProposalDetails = () => {
         alert("Something Went wrong");
         console.log(response);
       }
-
-      // const tx = await daoReadWrite.vote(
-      //   tokenId,
-      //   proposeAmount,
-      //   withDrawFundsFrom,
-      //   proposalDetails.proposalProof,
-      //   ownerRootHash
-      // );
-      // const txFinality = await tx.wait();
-      // if (txFinality.blocknumber === null) {
-      //   alert("Transaction Failed");
-      // } else {
-      //   alert("Submitted Proposal Successfully");
-      // }
     } catch (err) {
       if (err.code === 4001) {
         window.alert("User Rejected Metamask Connection");
@@ -135,6 +125,7 @@ const ProposalDetails = () => {
         console.log(err);
       }
     }
+    setShowLoader(false);
   };
 
   const handleExecute = async () => {
@@ -145,6 +136,7 @@ const ProposalDetails = () => {
         proposal.tokenId,
         proposal.onChainProposalId
       );
+      setShowLoader(true);
       const txFinality = await tx.wait();
       if (txFinality.blockNumber != null) {
         let result;
@@ -175,6 +167,7 @@ const ProposalDetails = () => {
         console.log(err);
       }
     }
+    setShowLoader(false);
   };
   return (
     <div className="PropertyDetails min-h-screen bg-black text-white">
@@ -323,6 +316,17 @@ const ProposalDetails = () => {
               })}
             </div>
           </div>
+          <LoadingModal show={showLoader}>
+            <div
+              className="flex justify-center items-center flex-col"
+              style={{ height: "100%" }}
+            >
+              <div>
+                <img src={loaderGIF} alt="blockGIF" style={{ width: "50px" }} />
+              </div>
+              <p className=" text-2xl mt-10">This will take Seconds</p>
+            </div>
+          </LoadingModal>
         </div>
       )}
     </div>
