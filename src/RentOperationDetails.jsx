@@ -4,6 +4,10 @@ import { useLocation } from "react-router-dom";
 import { ABI, MUMBAI_ADDRESS } from "./contracts/RentalProperties";
 import AxiosInstance from "./utils/axiosInstance";
 import connectToMetamask from "./utils/connectTometamask";
+import List_For_Rental from "./assets/List_For_Rental.png";
+import Initiate from "./assets/Initiate.png";
+import { LoadingModal } from "./Modal";
+import loaderGIF from "./assets/loader.gif";
 
 const RentOperationDetails = () => {
   const [listPropertydetails, setListPropertydetails] = useState({
@@ -25,59 +29,29 @@ const RentOperationDetails = () => {
     dailyRent: "",
     rentDeposits: "",
   });
+  const [reloadComponent, setReloadComponent] = useState(true);
+  const [showLoader, setShowLoader] = useState(false);
 
   const location = useLocation();
   //fetching the token id from url
   const tokenId = location.pathname.split("/")[2];
-  // const propertyStatus = {
-  //   propertyStatus: "Property is currently vacant",
-  //   tenant: "0x0000000000000000000000000000000000000000",
-  //   rentalPeriod: "1",
-  //   noOfCompletedDays: "0",
-  //   dailyRent: "0",
-  // };
 
   useEffect(() => {
     (async () => {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const network = await provider.getNetwork();
-      if (network.chainId != 80001) {
-        window.alert("Connect to Mumbai network");
-      } else {
-        try {
-          const rentalProperties = new ethers.Contract(
-            MUMBAI_ADDRESS,
-            ABI,
-            provider
-          );
-          const status = await rentalProperties.getPropertyStatus(tokenId);
-          const rentDeposits = await rentalProperties.getPropertyRentDeposits(
-            tokenId
-          );
-          console.log(rentDeposits);
-          console.log(status);
-          setpropertyStatus({
-            propertyStatus: "occupied",
-            tenant: status._tenant,
-            rentalPeriod: Number(status._rentalPeriod._hex),
-            noOfCompletedDays: Number(status._noOfCompletedDays._hex),
-            dailyRent: ethers.utils.formatEther(
-              Number(status._dailyRent._hex).toString()
-            ),
-            rentDeposits: ethers.utils.formatEther(
-              Number(rentDeposits._hex).toString()
-            ),
-          });
-        } catch (err) {
-          if (err.code === "CALL_EXCEPTION") {
-            console.log("Data Not found");
-          } else {
-            console.log(err);
-          }
-        }
-      }
+      const response = await AxiosInstance(
+        `api/property/getPropertyRentalStatus/${tokenId}`
+      );
+      const data = response.data.details;
+      setpropertyStatus({
+        propertyStatus: response.data.propertyStatus,
+        tenant: data ? data.tenant : "",
+        rentalPeriod: data ? data.rentalPeriod : "",
+        noOfCompletedDays: data ? data.noOfCompletedDays : "",
+        dailyRent: data ? data.dailyRent : "",
+        rentDeposits: data ? data.rentDeposits : "",
+      });
     })();
-  }, []);
+  }, [reloadComponent]);
   const handleListForm = (e) => {
     setListPropertydetails((prev) => {
       return {
@@ -105,7 +79,7 @@ const RentOperationDetails = () => {
         alert("connect you metamask to Mumbai network");
         return;
       }
-      console.log(accounts);
+      // console.log(accounts);
       const rentalPropertiesReadWrite = new ethers.Contract(
         MUMBAI_ADDRESS,
         ABI,
@@ -118,9 +92,14 @@ const RentOperationDetails = () => {
           maintenanceReserveCapAmount,
           vacancyReserveCapAmount
         );
-      const listPropertyTxFinality = await listPropertyTx.wait();
-      if (listPropertyTxFinality.blockNumber != null) {
+      setShowLoader(true);
+      const txFinality = await listPropertyTx.wait();
+      if (txFinality.blockNumber != null) {
+        let changeListingStatusResponse = await AxiosInstance.patch(
+          `api/property/changeListingStatus/${tokenId}`
+        );
         alert("Successfully listed property");
+        setReloadComponent(!reloadComponent);
       } else {
         alert("something Went Wrong, try again");
       }
@@ -131,7 +110,7 @@ const RentOperationDetails = () => {
         console.log(err);
       }
     }
-
+    setShowLoader(false);
     // console.log(maintenanceReserveCapAmount, vacancyReserveCapAmount);
   };
 
@@ -167,7 +146,7 @@ const RentOperationDetails = () => {
         alert("connect you metamask to Mumbai network");
         return;
       }
-      console.log(accounts);
+      // console.log(accounts);
       const rentalPropertiesReadWrite = new ethers.Contract(
         MUMBAI_ADDRESS,
         ABI,
@@ -183,11 +162,12 @@ const RentOperationDetails = () => {
           amountToVacancyReserve,
           { value: totalRentAmount }
         );
+      setShowLoader(true);
       const initialRentalTxFinality = await initialRentalTx.wait();
-      console.log(initialRentalTxFinality);
+      // console.log(initialRentalTxFinality);
       if (initialRentalTxFinality.blockNumber != null) {
         alert("Successfully Initiated the rental Period");
-        window.location.reload(false);
+        setReloadComponent(!reloadComponent);
       } else {
         alert("something Went Wrong, try again");
       }
@@ -198,6 +178,7 @@ const RentOperationDetails = () => {
         console.log(err);
       }
     }
+    setShowLoader(false);
   };
   const handleTerminateRentalPeriod = async (e) => {
     try {
@@ -208,7 +189,7 @@ const RentOperationDetails = () => {
         alert("connect you metamask to Mumbai network");
         return;
       }
-      console.log(accounts);
+      // console.log(accounts);
       const rentalPropertiesReadWrite = new ethers.Contract(
         MUMBAI_ADDRESS,
         ABI,
@@ -217,11 +198,12 @@ const RentOperationDetails = () => {
 
       const terminateRentalTx =
         await rentalPropertiesReadWrite.terminateRentalPeriod(tokenId);
+      setShowLoader(true);
       const terminateRentalTxFinality = await terminateRentalTx.wait();
       // console.log(terminateRentalTxFinality);
       if (terminateRentalTxFinality.blockNumber != null) {
         alert("Successfully Terminated the rental Period");
-        window.location.reload(false);
+        setReloadComponent(!reloadComponent);
       } else {
         alert("something Went Wrong, try again");
       }
@@ -232,6 +214,7 @@ const RentOperationDetails = () => {
         console.log(err);
       }
     }
+    setShowLoader(false);
   };
 
   const handleDistributeRentAmount = async (e) => {
@@ -243,7 +226,7 @@ const RentOperationDetails = () => {
         alert("connect you metamask to Mumbai network");
         return;
       }
-      console.log(accounts);
+
       const rentalPropertiesReadWrite = new ethers.Contract(
         MUMBAI_ADDRESS,
         ABI,
@@ -257,11 +240,13 @@ const RentOperationDetails = () => {
       // console.log(owners);
       const distributeRentalAmountTx =
         await rentalPropertiesReadWrite.distributeRentAmount(tokenId, owners);
+      setShowLoader(true);
       const distributeRentalAmountTxFinality =
         await distributeRentalAmountTx.wait();
       // console.log(terminateRentalTxFinality);
       if (distributeRentalAmountTxFinality.blockNumber != null) {
         alert("Successfully Distribute Rent");
+        setReloadComponent(!reloadComponent);
         // window.location.reload(false);
       } else {
         alert("something Went Wrong, try again");
@@ -273,6 +258,7 @@ const RentOperationDetails = () => {
         console.log(err);
       }
     }
+    setShowLoader(false);
   };
   return (
     <div className="RentOperations min-h-screen bg-black text-white">
@@ -284,7 +270,7 @@ const RentOperationDetails = () => {
           <p className=" w-fit text-5xl p-4 mx-auto border-4 rounded">
             Property Status
           </p>
-          {propertyStatus.rentalPeriod ? (
+          {propertyStatus.propertyStatus === "Occupied" ? (
             <div className="">
               <div className="statusDetails p-3 my-9 text-2xl">
                 <p className="m-2 ">
@@ -356,7 +342,7 @@ const RentOperationDetails = () => {
           Rental Property Details
         </p>
         <div className="Container2 flex my-10">
-          <div className="leftFormContainer flex-1 p-5">
+          <div className="leftFormContainer flex-1 p-16">
             <form onSubmit={handleListPropertySubmit}>
               <div className="form-group my-3">
                 <label
@@ -415,9 +401,10 @@ const RentOperationDetails = () => {
       block
       mx-auto
       p-2.5
-      text-lg
-      bg-cyan-900
-      text-gray-300
+      text-lg hover:bg-blue-700
+        border-2
+       border-blue-700
+      text-gray-500
       uppercase
       rounded
        hover:text-black"
@@ -426,7 +413,9 @@ const RentOperationDetails = () => {
               </button>
             </form>
           </div>
-          <div className="rightBlackContainer flex-1"></div>
+          <div className="rightBlackContainer flex-1">
+            <img src={List_For_Rental} alt="List_For_Rental" />
+          </div>
         </div>
       </div>
 
@@ -435,8 +424,10 @@ const RentOperationDetails = () => {
           Initiate Rental period
         </p>
         <div className="Container3 flex mt-6 pb-6">
-          <div className="leftBlackContainer flex-1"></div>
-          <div className="rightFormContainer flex-1 p-5">
+          <div className="leftBlackContainer flex-1 pt-12">
+            <img src={Initiate} alt="Initiate" />
+          </div>
+          <div className="rightFormContainer flex-1 p-16">
             <form onSubmit={handleInitiateRentalSubmit}>
               <div className="form-group my-3">
                 <label
@@ -574,8 +565,10 @@ const RentOperationDetails = () => {
       px-6
       py-2.5
       text-lg
-      bg-cyan-900
-      text-gray-300
+      hover:bg-blue-700
+        border-2
+       border-blue-700
+      text-gray-500
       uppercase
       rounded
        hover:text-black"
@@ -586,6 +579,17 @@ const RentOperationDetails = () => {
           </div>
         </div>
       </div>
+      <LoadingModal show={showLoader}>
+        <div
+          className="flex justify-center items-center flex-col"
+          style={{ height: "100%" }}
+        >
+          <div>
+            <img src={loaderGIF} alt="blockGIF" style={{ width: "50px" }} />
+          </div>
+          <p className=" text-2xl mt-10">This will take seconds</p>
+        </div>
+      </LoadingModal>
     </div>
   );
 };
