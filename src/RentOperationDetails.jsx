@@ -31,6 +31,7 @@ const RentOperationDetails = () => {
   });
   const [reloadComponent, setReloadComponent] = useState(true);
   const [showLoader, setShowLoader] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const location = useLocation();
   //fetching the token id from url
@@ -38,6 +39,7 @@ const RentOperationDetails = () => {
 
   useEffect(() => {
     (async () => {
+      setIsLoading(true);
       const response = await AxiosInstance(
         `api/property/getPropertyRentalStatus/${tokenId}`
       );
@@ -50,6 +52,7 @@ const RentOperationDetails = () => {
         dailyRent: data ? data.dailyRent : "",
         rentDeposits: data ? data.rentDeposits : "",
       });
+      setIsLoading(false);
     })();
   }, [reloadComponent]);
   const handleListForm = (e) => {
@@ -260,6 +263,22 @@ const RentOperationDetails = () => {
     }
     setShowLoader(false);
   };
+
+  const LoadingSkeleton = () => {
+    return (
+      <div className="w-96 [&>p]:mb-4 [&>p]:animate-pulse [&>p]:h-3 [&>p]:bg-gray-400">
+        <p className="w-26"></p>
+        <p className="w-1/2"></p>
+        <p className="leading-relaxed w-full"></p>
+        <p className="leading-relaxed w-2/3"></p>
+        <p className="leading-relaxed w-1/2"></p>
+        <div className="flex justify-around [&>div]:animate-pulse mt-10">
+          <div className=" w-24 h-8 bg-gray-400"></div>
+          <div className=" w-24 h-8 bg-gray-400"></div>
+        </div>
+      </div>
+    );
+  };
   return (
     <div className="RentOperations min-h-screen bg-black text-white">
       <div className="Container mx-4 mb-12 pt-10 flex">
@@ -270,7 +289,14 @@ const RentOperationDetails = () => {
           <p className=" w-fit text-5xl p-4 mx-auto border-4 rounded">
             Property Status
           </p>
-          {propertyStatus.propertyStatus === "Occupied" ? (
+          {isLoading ? (
+            <div
+              className="flex justify-center items-center"
+              style={{ minHeight: "84%" }}
+            >
+              <LoadingSkeleton />
+            </div>
+          ) : propertyStatus.propertyStatus === "Occupied" ? (
             <div className="">
               <div className="statusDetails p-3 my-9 text-2xl">
                 <p className="m-2 ">

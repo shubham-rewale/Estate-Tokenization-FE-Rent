@@ -13,6 +13,7 @@ import AxiosInstance from "./utils/axiosInstance";
 import connectToMetamask from "./utils/connectTometamask";
 import { LoadingModal } from "./Modal";
 import loaderGIF from "./assets/loader.gif";
+import APIloader2GIF from "./assets/APILoader2.gif";
 
 const ReserveOperationsDetails = () => {
   const [ReserveAmounts, setReserveAmounts] = useState({
@@ -32,12 +33,14 @@ const ReserveOperationsDetails = () => {
   });
   const [reloadComponent, setReloadComponent] = useState(true);
   const [showLoader, setShowLoader] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const location = useLocation();
   //fetching the token id from url
   const tokenId = location.pathname.split("/")[2];
   useEffect(() => {
     (async () => {
+      setIsLoading(true);
       const response = await AxiosInstance(
         `api/property/getReservesDetails/${tokenId}`
       );
@@ -58,6 +61,7 @@ const ReserveOperationsDetails = () => {
         propertyVacancyReserveCap:
           result.vacancyReserveDetails.vacancyReserveCap,
       });
+      setIsLoading(false);
     })();
   }, [reloadComponent]);
   const handleAmountForm = (e) => {
@@ -139,34 +143,50 @@ const ReserveOperationsDetails = () => {
     }
     setShowLoader(false);
   };
+
+  const LoadingSkeleton = () => {
+    return <div className="bg-gray-500 animate-pulse h-5 w-24"></div>;
+  };
   return (
     <div className="ReserveOperationsDetails min-h-screen bg-black text-white">
       <p className="text-7xl w-fit mx-auto p-5 font-bold text-cyan-700">
         Reserve Details
       </p>
       <div className="Container1 flex">
-        <div className="MaintenanceReserve p-12 flex-1 flex justify-center items-center border-r-2">
+        <div className="MaintenanceReserve p-12 flex-1 flex justify-center items-center">
           <div>
             <p className="text-5xl text-gray-500 p-4">Maintenance Reserve</p>
-            <div className="mt-9 flex justify-center items-center flex-col">
-              <p className="text-2xl my-2 text-gray-300">
-                Maintenance Reserve Cap :{" "}
-                <span className="text-green-600">
-                  {maintenanceReserveData.propertyMaintenanceReserveCap} Ether
-                </span>
+            <div className="mt-9 flex justify-center items-center flex-col [&>p]:text-2xl [&>p]:my-2 [&>p]:text-gray-300 [&>p]:flex [&>p]:items-center">
+              <p>
+                <p className="mr-4">Maintenance Reserve Cap </p>
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <span className="text-green-600 block">
+                    {maintenanceReserveData.propertyMaintenanceReserveCap} Ether
+                  </span>
+                )}
               </p>
-              <p className="text-2xl my-2 text-gray-300">
-                Maintenance Reserve :{" "}
-                <span className="text-green-600">
-                  {maintenanceReserveData.propertyMaintenanceReserve} Ether
-                </span>
+              <p>
+                <p className="mr-4">Maintenance Reserve</p>
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <span className="text-green-600">
+                    {maintenanceReserveData.propertyMaintenanceReserve} Ether
+                  </span>
+                )}
               </p>
-              <p className="text-2xl my-2 text-gray-300">
-                Maintenance Reserve Deficit :{" "}
-                <span className="text-green-600">
-                  {maintenanceReserveData.propertyMaintenanceReserveDeficit}{" "}
-                  Ether
-                </span>
+              <p>
+                <p className="mr-4">Maintenance Reserve Deficit</p>
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <span className="text-green-600">
+                    {maintenanceReserveData.propertyMaintenanceReserveDeficit}{" "}
+                    Ether
+                  </span>
+                )}
               </p>
             </div>
             <div className="FormContainer mt-10">
@@ -209,29 +229,41 @@ const ReserveOperationsDetails = () => {
               </form>
             </div>
           </div>
-          {/* <button>Restore Maintenance Reserve</button> */}
         </div>
+
         <div className="VacancyReserve flex-1 p-12 flex justify-center items-center">
           <div className="">
             <p className="text-5xl text-gray-500 p-4">Vacancy Reserve</p>
-            <div className="mt-9 flex justify-center items-center flex-col">
-              <p className="text-2xl my-2 text-gray-300">
-                Property Vacancy Reserve Cap :{" "}
-                <span className="text-rose-800">
-                  {vacancyReserveData.propertyVacancyReserveCap} Ether
-                </span>
+            <div className="mt-9 flex justify-center items-center flex-col [&>p]:text-2xl [&>p]:my-2 [&>p]:text-gray-300 [&>p]:flex [&>p]:items-center">
+              <p>
+                <p className="mr-4">Property Vacancy Reserve Cap</p>
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <span className="text-rose-800">
+                    {vacancyReserveData.propertyVacancyReserveCap} Ether
+                  </span>
+                )}
               </p>
-              <p className="text-2xl my-2 text-gray-300">
-                Property vacancy Reserve :{" "}
-                <span className="text-rose-800">
-                  {vacancyReserveData.propertyVacancyReserve} Ether
-                </span>
+              <p>
+                <p className="mr-4">Property vacancy Reserve</p>
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <span className="text-rose-800">
+                    {vacancyReserveData.propertyVacancyReserve} Ether
+                  </span>
+                )}
               </p>
-              <p className="text-2xl my-2 text-gray-300">
-                Property vacancy Reserve Deficit :{" "}
-                <span className="text-rose-800">
-                  {vacancyReserveData.propertyVacancyReserveDeficit} Ether
-                </span>
+              <p>
+                <p className="mr-4">Property vacancy Reserve Deficit</p>
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <span className="text-rose-800">
+                    {vacancyReserveData.propertyVacancyReserveDeficit} Ether
+                  </span>
+                )}
               </p>
             </div>
             <div className="FormContainer mt-10">

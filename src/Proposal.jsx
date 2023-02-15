@@ -19,6 +19,7 @@ const Proposal = () => {
 
   const [proposals, setProposals] = useState();
   const [showLoader, setShowLoader] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [reloadComponent, setReloadComponent] = useState(true);
   const location = useLocation();
   //fetching the token id from url
@@ -26,10 +27,12 @@ const Proposal = () => {
 
   useEffect(() => {
     (async () => {
+      setIsLoading(true);
       const response = await AxiosInstance(
         `api/proposal/proposals?tokenId=${tokenId}`
       );
       setProposals(response.data.result.data);
+      setIsLoading(false);
     })();
   }, [reloadComponent]);
 
@@ -146,6 +149,22 @@ const Proposal = () => {
     setShowLoader(false);
   };
 
+  const LoadingSkeleton = () => {
+    return (
+      <div>
+        {Array(3).fill(
+          <div className="w-96 border-2 border-white m-3 p-4">
+            <div className="flex justify-between [&>div]:animate-pulse [&>div]:h-3 [&>div]:bg-gray-400">
+              <div className=" w-4"></div>
+              <div className=" w-52"></div>
+              <div className=" w-8"></div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+  // animate-pulse
   return (
     <div className="Proposal min-h-screen bg-black text-white">
       <div className="Container mx-4 mb-4 pt-10 flex">
@@ -289,19 +308,23 @@ const Proposal = () => {
         </div>
       </div>
       <div className="AllProposals">
-        <div className="flex justify-center border-b-2 mb-6 mx-4">
-          <p className="w-fit text-6xl p-4 mb-2 text-gray-300">
+        <div className="flex justify-center  mb-6 mx-4">
+          <p className="w-fit text-6xl p-4 mb-2 text-gray-300 border-b-2">
             Current Proposals
           </p>
         </div>
         <div className="proposalContainer flex justify-center">
           <div className=" p-3">
-            {proposals ? (
+            {isLoading ? (
+              <div className="w-fit mx-auto">
+                <LoadingSkeleton />
+              </div>
+            ) : proposals.length > 0 ? (
               proposals.map((ele, idx) => (
                 <ProposalCard key={idx} proposal={ele} />
               ))
             ) : (
-              <p className="w-fit mx-auto text-5xl p-4">Loading...</p>
+              <div className="text-2xl">Create A Proposal</div>
             )}
           </div>
         </div>
