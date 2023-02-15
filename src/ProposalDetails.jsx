@@ -6,6 +6,7 @@ import AxiosInstance from "./utils/axiosInstance";
 import connectToMetamask from "./utils/connectTometamask";
 import { LoadingModal } from "./Modal";
 import loaderGIF from "./assets/loader.gif";
+import OwnersAndBalancesComponent from "./OwnersAndBalancesComponent";
 
 const ProposalDetails = () => {
   const location = useLocation();
@@ -295,27 +296,22 @@ const ProposalDetails = () => {
               </div>
             </div>
           </div>
-          <div className="tokenOwnerAndBalancesContainer mt-10 pb-10">
-            <div className="w-fit text-6xl  text-gray-500 mx-auto mb-6">
-              Token Holders
-            </div>
+          <div className="tokenOwners mt-12 ">
+            <p className="w-fit text-5xl mb-5 text-gray-500 mx-auto">
+              Property Owners At Proposal Creation
+            </p>
             <div className="ownersContainer w-fit mx-auto ">
               <div className="p-3 text-gray-300 text-xl border-b-2 border-b-gray">
                 <span className="mr-10 px-44 ">Addresses</span>
                 <span>Balances</span>
               </div>
-              {proposal.ownerListAtProposal.map((addressAndBalance, idx) => {
-                return (
-                  <div key={idx} className="p-3 text-gray-300 text-xl ">
-                    <span className="mr-3 w-fit px-2">
-                      {addressAndBalance.Address}
-                    </span>
-                    <span>{addressAndBalance.Balance}</span>
-                  </div>
-                );
-              })}
+
+              <OwnersAndBalancesComponent
+                ownersAndBalances={proposal.ownerListAtProposal}
+              />
             </div>
           </div>
+
           <LoadingModal show={showLoader}>
             <div
               className="flex justify-center items-center flex-col"
