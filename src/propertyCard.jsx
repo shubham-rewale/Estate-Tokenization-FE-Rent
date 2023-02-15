@@ -5,7 +5,7 @@ const PropertyCard = (props) => {
   return (
     <Link to={`/property/${property.propertyTokenId}`} state={property}>
       <div className="propertyCard w-96 m-7 border-2 border-white rounded hover:scale-110 hover:duration-75">
-        <div className="image">
+        <div className="image flex items-center" style={{ minHeight: "300px" }}>
           <img
             src={`https://ipfs.io/ipfs/${property.uri}`}
             style={{
