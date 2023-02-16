@@ -1,12 +1,13 @@
 import { ethers } from "ethers";
 import connectToMetamask from "./utils/connectTometamask";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ABI, MUMBAI_ADDRESS } from "./contracts/DAO";
 import ProposalCard from "./ProposalCard";
 import AxiosInstance from "./utils/axiosInstance";
 import { LoadingModal } from "./Modal";
 import loaderGIF from "./assets/loader.gif";
+import { reloadContext } from "./App";
 
 const Proposal = () => {
   const [proposalDetails, setproposalDetails] = useState({
@@ -20,7 +21,8 @@ const Proposal = () => {
   const [proposals, setProposals] = useState();
   const [showLoader, setShowLoader] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [reloadComponent, setReloadComponent] = useState(true);
+  const [reloadComponent, setReloadComponent] =
+    useContext(reloadContext).reloadDetails;
   const location = useLocation();
   //fetching the token id from url
   const tokenId = location.pathname.split("/")[3];

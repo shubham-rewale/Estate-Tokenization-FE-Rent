@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MaintenanceReserveABI,
@@ -14,6 +14,7 @@ import connectToMetamask from "./utils/connectTometamask";
 import { LoadingModal } from "./Modal";
 import loaderGIF from "./assets/loader.gif";
 import APIloader2GIF from "./assets/APILoader2.gif";
+import { reloadContext } from "./App";
 
 const ReserveOperationsDetails = () => {
   const [ReserveAmounts, setReserveAmounts] = useState({
@@ -31,7 +32,8 @@ const ReserveOperationsDetails = () => {
     propertyVacancyReserve: "0",
     propertyVacancyReserveDeficit: "0",
   });
-  const [reloadComponent, setReloadComponent] = useState(true);
+  const [reloadComponent, setReloadComponent] =
+    useContext(reloadContext).reloadDetails;
   const [showLoader, setShowLoader] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 

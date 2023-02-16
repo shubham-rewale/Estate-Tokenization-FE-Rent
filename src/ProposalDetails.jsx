@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ethers } from "ethers";
 import { ABI, MUMBAI_ADDRESS } from "./contracts/DAO";
@@ -7,6 +7,7 @@ import connectToMetamask from "./utils/connectTometamask";
 import { LoadingModal } from "./Modal";
 import loaderGIF from "./assets/loader.gif";
 import OwnersAndBalancesComponent from "./OwnersAndBalancesComponent";
+import { reloadContext } from "./App";
 
 const ProposalDetails = () => {
   const location = useLocation();
@@ -18,7 +19,8 @@ const ProposalDetails = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [showLoader, setShowLoader] = useState(false);
-  const [reloadComponent, setReloadComponent] = useState(true);
+  const [reloadComponent, setReloadComponent] =
+    useContext(reloadContext).reloadDetails;
   // const proposal = location.state;
   // console.log(proposal);
   const forVote = 0;
