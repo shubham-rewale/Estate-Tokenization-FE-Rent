@@ -24,12 +24,16 @@ const PropertyDetails = () => {
   const LoadingSkeleton = () => {
     return (
       <div className="w-fit [&>div]:flex [&>div]:animate-pulse [&>div]:mb-4">
-        {Array(6).fill(
-          <div className="[&>p]:bg-gray-400 [&>p]:h-3">
-            <p className="w-96 mr-10"></p>
-            <p className="w-10"></p>
-          </div>
-        )}
+        {Array(6)
+          .fill(0)
+          .map((item, idx) => {
+            return (
+              <div className="[&>p]:bg-gray-400 [&>p]:h-3" key={idx}>
+                <p className="w-96 mr-10"></p>
+                <p className="w-10"></p>
+              </div>
+            );
+          })}
       </div>
     );
   };
