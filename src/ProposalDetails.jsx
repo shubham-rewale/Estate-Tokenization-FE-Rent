@@ -7,7 +7,7 @@ import connectToMetamask from "./utils/connectTometamask";
 import { LoadingModal } from "./Modal";
 import loaderGIF from "./assets/loader.gif";
 import OwnersAndBalancesComponent from "./OwnersAndBalancesComponent";
-import { reloadContext } from "./App";
+import { reloadContext, userContext } from "./App";
 
 const ProposalDetails = () => {
   const location = useLocation();
@@ -21,6 +21,7 @@ const ProposalDetails = () => {
   const [showLoader, setShowLoader] = useState(false);
   const [reloadComponent, setReloadComponent] =
     useContext(reloadContext).reloadDetails;
+  const [user, setUser] = useContext(userContext).userDetails;
   // const proposal = location.state;
   // console.log(proposal);
   const forVote = 0;
@@ -50,7 +51,6 @@ const ProposalDetails = () => {
       setIsLoading(false);
     })();
   }, [reloadComponent]);
-
   const handleVoteClick = async (e) => {
     // console.log(e.target.name);
     try {
@@ -106,7 +106,7 @@ const ProposalDetails = () => {
             voter,
           });
           let updateProposalResponse = await AxiosInstance.post(
-            `api/proposal/updatePropertyDetails`,
+            `api/proposal/updateProposalDetails`,
             {
               proposalIdHash: proposal.proposalIdHash,
               updateField: "votingDetails",
@@ -150,7 +150,7 @@ const ProposalDetails = () => {
           }
         });
         let updateProposalResponse = await AxiosInstance.post(
-          `api/proposal/updatePropertyDetails`,
+          `api/proposal/updateProposalDetails`,
           {
             proposalIdHash: proposal.proposalIdHash,
             updateField: "executionField",
@@ -216,7 +216,7 @@ const ProposalDetails = () => {
                 voting Details
               </p>
 
-              <div className="votingDetailsContainer w-fit mx-auto">
+              <div className="votingDetailsContainer w-1/2 mx-auto ">
                 <div className="forVote">
                   <div className="flex justify-between mb-1">
                     <span className="text-base font-medium text-green-700 dark:text-white">
@@ -251,7 +251,7 @@ const ProposalDetails = () => {
                   </div>
                 </div>
                 <div
-                  className={`timeDetails text-2xl mt-10 ${
+                  className={`timeDetails text-2xl mt-10 w-fit mx-auto  ${
                     proposal.proposalState === "Pending"
                       ? " text-yellow-300"
                       : proposal.proposalState === "Active"
@@ -263,37 +263,40 @@ const ProposalDetails = () => {
                     ? `Voting will start at ${proposal.votingStartTimeIST}`
                     : proposal.proposalState === "Active"
                     ? `Voting will end at ${proposal.votingEndTimeIST}`
-                    : "Voting Period Is over"}
+                    : "Voting Period is over"}
                 </div>
-                <div className="votingButtons">
-                  <div className="vote py-10 flex flex-col items-center border-b-2 border-gray-400">
-                    <button
-                      name="1"
-                      className=" block my-3 p-2 w-52 text-2xl rounded border-2 border-green-500 hover:bg-green-500 hover:text-black"
-                      onClick={handleVoteClick}
-                    >
-                      Vote For
-                    </button>
-                    <button
-                      name="0"
-                      className="block my-3 p-2 w-52 text-2xl rounded border-2 border-red-500 hover:bg-red-500 hover:text-black"
-                      onClick={handleVoteClick}
-                    >
-                      Vote Against
-                    </button>
-                  </div>
-
-                  <div className="execute mt-3 text-gray-400">
-                    <p>Note :- Only Property Manager can execute a proposal</p>
-                    <div className="executeButton mt-3 flex justify-center">
+                <div className="votingAndExecuteButtons">
+                  {proposal.proposalState === "Active" && user.isConnected && (
+                    <div className="voteButtons py-10 flex flex-col items-center">
                       <button
-                        className="block p-2 w-52 border-2 rounded border-cyan-700 hover:bg-cyan-700 hover:text-black"
-                        onClick={handleExecute}
+                        name="1"
+                        className=" block my-3 p-2 w-52 text-2xl rounded border-2 border-green-500 hover:bg-green-500 hover:text-black"
+                        onClick={handleVoteClick}
                       >
-                        Execute
+                        Vote For
+                      </button>
+                      <button
+                        name="0"
+                        className="block my-3 p-2 w-52 text-2xl rounded border-2 border-red-500 hover:bg-red-500 hover:text-black"
+                        onClick={handleVoteClick}
+                      >
+                        Vote Against
                       </button>
                     </div>
-                  </div>
+                  )}
+
+                  {proposal.proposalState === "Execution" &&
+                    user.isConnected &&
+                    user.isPropertyManager && (
+                      <div className="executeButton mt-3 flex justify-center">
+                        <button
+                          className="block p-2 w-52 border-2 rounded border-cyan-700 hover:bg-cyan-700 hover:text-black"
+                          onClick={handleExecute}
+                        >
+                          Execute
+                        </button>
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
