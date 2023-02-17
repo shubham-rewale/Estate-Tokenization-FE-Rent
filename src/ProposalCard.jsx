@@ -9,7 +9,7 @@ const ProposalCard = (props) => {
       to={`/property/${tokenId}/proposal/${proposal.onChainProposalId}`}
       state={proposal.proposalIdHash}
     >
-      <div className="ProposalCard w-fit m-3 p-4 border-2 border-white flex">
+      <div className="ProposalCard w-64 m-3 p-4 border-2 border-white flex">
         <p>{proposal.onChainProposalId}</p>
         <p className="px-3 w-52 truncate">{proposal.proposalTitle}</p>
         <p
