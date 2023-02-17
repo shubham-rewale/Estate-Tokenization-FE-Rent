@@ -9,7 +9,7 @@ const Home = () => {
     (async () => {
       try {
         const response = await AxiosInstance(
-          "/api/property/getAllPropertystatus"
+          "/api/property/getAllListedProperty"
         );
         setTokenData(response.data.PropertyDetail);
       } catch (err) {
