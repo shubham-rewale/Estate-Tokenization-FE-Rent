@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ABI, MUMBAI_ADDRESS } from "./contracts/RentalProperties";
 import AxiosInstance from "./utils/axiosInstance";
@@ -8,6 +8,7 @@ import List_For_Rental from "./assets/List_For_Rental.png";
 import Initiate from "./assets/Initiate.png";
 import { LoadingModal } from "./Modal";
 import loaderGIF from "./assets/loader.gif";
+import { reloadContext, userContext } from "./App";
 
 const RentOperationDetails = () => {
   const [listPropertydetails, setListPropertydetails] = useState({
@@ -29,10 +30,11 @@ const RentOperationDetails = () => {
     dailyRent: "",
     rentDeposits: "",
   });
-  const [reloadComponent, setReloadComponent] = useState(true);
+  const [reloadComponent, setReloadComponent] =
+    useContext(reloadContext).reloadDetails;
+  const [user, setUser] = useContext(userContext).userDetails;
   const [showLoader, setShowLoader] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
   const location = useLocation();
   //fetching the token id from url
   const tokenId = location.pathname.split("/")[2];
@@ -55,67 +57,68 @@ const RentOperationDetails = () => {
       setIsLoading(false);
     })();
   }, [reloadComponent]);
-  const handleListForm = (e) => {
-    setListPropertydetails((prev) => {
-      return {
-        ...prev,
-        [e.target.name]: e.target.value,
-      };
-    });
-  };
-  const handleListPropertySubmit = async (e) => {
-    e.preventDefault();
-    const maintenanceReserveCapAmount = ethers.utils.parseUnits(
-      listPropertydetails.maintenanceReserveCap,
-      "ether"
-    );
-    const vacancyReserveCapAmount = ethers.utils.parseUnits(
-      listPropertydetails.vacancyReserveCap,
-      "ether"
-    );
+  // const handleListForm = (e) => {
+  //   setListPropertydetails((prev) => {
+  //     return {
+  //       ...prev,
+  //       [e.target.name]: e.target.value,
+  //     };
+  //   });
+  // };
 
-    try {
-      const [provider, accounts, signer] = await connectToMetamask();
-      //checking the network
-      const chainId = await signer.getChainId();
-      if (chainId !== 80001) {
-        alert("connect you metamask to Mumbai network");
-        return;
-      }
-      // console.log(accounts);
-      const rentalPropertiesReadWrite = new ethers.Contract(
-        MUMBAI_ADDRESS,
-        ABI,
-        signer
-      );
+  // const handleListPropertyForRentalSubmit = async (e) => {
+  //   e.preventDefault();
+  //   const maintenanceReserveCapAmount = ethers.utils.parseUnits(
+  //     listPropertydetails.maintenanceReserveCap,
+  //     "ether"
+  //   );
+  //   const vacancyReserveCapAmount = ethers.utils.parseUnits(
+  //     listPropertydetails.vacancyReserveCap,
+  //     "ether"
+  //   );
 
-      const listPropertyTx =
-        await rentalPropertiesReadWrite.enterRentalPropertyDetails(
-          tokenId,
-          maintenanceReserveCapAmount,
-          vacancyReserveCapAmount
-        );
-      setShowLoader(true);
-      const txFinality = await listPropertyTx.wait();
-      if (txFinality.blockNumber != null) {
-        let changeListingStatusResponse = await AxiosInstance.patch(
-          `api/property/changeListingStatus/${tokenId}`
-        );
-        alert("Successfully listed property");
-        setReloadComponent(!reloadComponent);
-      } else {
-        alert("something Went Wrong, try again");
-      }
-    } catch (err) {
-      if (err.code === 4001) {
-        window.alert("User Rejected Metamask Connection");
-      } else {
-        console.log(err);
-      }
-    }
-    setShowLoader(false);
-    // console.log(maintenanceReserveCapAmount, vacancyReserveCapAmount);
-  };
+  //   try {
+  //     const [provider, accounts, signer] = await connectToMetamask();
+  //     //checking the network
+  //     const chainId = await signer.getChainId();
+  //     if (chainId !== 80001) {
+  //       alert("connect you metamask to Mumbai network");
+  //       return;
+  //     }
+  //     // console.log(accounts);
+  //     const rentalPropertiesReadWrite = new ethers.Contract(
+  //       MUMBAI_ADDRESS,
+  //       ABI,
+  //       signer
+  //     );
+
+  //     const listPropertyTx =
+  //       await rentalPropertiesReadWrite.enterRentalPropertyDetails(
+  //         tokenId,
+  //         maintenanceReserveCapAmount,
+  //         vacancyReserveCapAmount
+  //       );
+  //     setShowLoader(true);
+  //     const txFinality = await listPropertyTx.wait();
+  //     if (txFinality.blockNumber != null) {
+  //       let changeListingStatusResponse = await AxiosInstance.patch(
+  //         `api/property/changeListingStatus/${tokenId}`
+  //       );
+  //       alert("Successfully listed property");
+  //       setReloadComponent(!reloadComponent);
+  //     } else {
+  //       alert("something Went Wrong, try again");
+  //     }
+  //   } catch (err) {
+  //     if (err.code === 4001) {
+  //       window.alert("User Rejected Metamask Connection");
+  //     } else {
+  //       console.log(err);
+  //     }
+  //   }
+  //   setShowLoader(false);
+  //   // console.log(maintenanceReserveCapAmount, vacancyReserveCapAmount);
+  // };
 
   const handleInitiateRentalFrom = (e) => {
     setinitiateRentalDetails((prev) => {
@@ -171,6 +174,13 @@ const RentOperationDetails = () => {
       if (initialRentalTxFinality.blockNumber != null) {
         alert("Successfully Initiated the rental Period");
         setReloadComponent(!reloadComponent);
+        setinitiateRentalDetails({
+          tenantAddress: "",
+          rentalPeriod: "",
+          amountToMaintenanceReserve: "",
+          amountToVacancyReserve: "",
+          totalRentAmount: "",
+        });
       } else {
         alert("something Went Wrong, try again");
       }
@@ -281,7 +291,7 @@ const RentOperationDetails = () => {
   };
   return (
     <div className="RentOperations min-h-screen bg-black text-white">
-      <div className="Container mx-4 mb-12 pt-10 flex">
+      <div className="Container0 mx-4 mb-12 pt-10 flex">
         <div className="LeftSomeBoldText flex-1 text-9xl p-4 text-cyan-700">
           Lorem ipsum dolor sit amet consectetur
         </div>
@@ -338,18 +348,22 @@ const RentOperationDetails = () => {
                 </p>
               </div>
               <div className="DistributeTerminateButtons flex justify-around ">
-                <button
-                  className=" bg-transparent text-purple-800 text-lg m-2 p-2 rounded border-2 border-purple-800 hover:bg-purple-800  hover:text-gray-300"
-                  onClick={handleDistributeRentAmount}
-                >
-                  Distribute Rent Amount
-                </button>
-                <button
-                  className=" bg-transparent text-rose-800 text-lg m-2 p-2 rounded border-2 border-rose-800 hover:bg-rose-800  hover:text-gray-300"
-                  onClick={handleTerminateRentalPeriod}
-                >
-                  Terminate Rental Period
-                </button>
+                {user.isConnected && user.isPropertyManager && (
+                  <div className="rentButtonContainer">
+                    <button
+                      className=" bg-transparent text-purple-800 text-lg m-2 p-2 rounded border-2 border-purple-800 hover:bg-purple-800  hover:text-gray-300"
+                      onClick={handleDistributeRentAmount}
+                    >
+                      Distribute Rent Amount
+                    </button>
+                    <button
+                      className=" bg-transparent text-rose-800 text-lg m-2 p-2 rounded border-2 border-rose-800 hover:bg-rose-800  hover:text-gray-300"
+                      onClick={handleTerminateRentalPeriod}
+                    >
+                      Terminate Rental Period
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -363,23 +377,28 @@ const RentOperationDetails = () => {
         </div>
       </div>
 
-      <div className="RentalPropertyDetailsContainer">
-        <p className="text-5xl w-fit mx-auto text-gray-500 p-3 border-b-2">
-          Rental Property Details
-        </p>
-        <div className="Container2 flex my-10">
-          <div className="leftFormContainer flex-1 p-16">
-            <form onSubmit={handleListPropertySubmit}>
-              <div className="form-group my-3">
-                <label
-                  htmlFor="MaintenanceReserveCap"
-                  className="form-label inline-block mb-2 text-gray-400"
-                >
-                  Enter Property Maintenance Reserve Cap
-                </label>
-                <input
-                  type="text"
-                  className="form-control
+      {user.isConnected && user.isPropertyManager && (
+        <div className="Container1">
+          <div className="InitiateRentalPeriod">
+            <p className="text-5xl w-fit mx-auto text-gray-500 p-3 border-b-2">
+              Initiate Rental period
+            </p>
+            <div className="Container3 flex mt-6 pb-6">
+              <div className="leftBlackContainer flex-1 pt-12">
+                <img src={Initiate} alt="Initiate" />
+              </div>
+              <div className="rightFormContainer flex-1 p-16">
+                <form onSubmit={handleInitiateRentalSubmit}>
+                  <div className="form-group my-3">
+                    <label
+                      htmlFor="tenantAddress"
+                      className="form-label inline-block mb-2 text-gray-400"
+                    >
+                      Enter Tenant Address
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control
         block
         w-full
         px-3
@@ -387,25 +406,25 @@ const RentOperationDetails = () => {
        text-white
         bg-gray-900 
         rounded"
-                  id="MaintenanceReserveCap"
-                  name="maintenanceReserveCap"
-                  value={listPropertydetails.maintenanceReserveCap}
-                  onChange={handleListForm}
-                  placeholder="In Ether"
-                  required
-                />
-              </div>
+                      id="tenantAddress"
+                      name="tenantAddress"
+                      value={initiateRentalDetails.tenantAddress}
+                      onChange={handleInitiateRentalFrom}
+                      placeholder="Tenant Eth Address"
+                      required
+                    />
+                  </div>
 
-              <div className="form-group my-6">
-                <label
-                  htmlFor="vacancyReserveCap"
-                  className="form-label inline-block mb-2 text-gray-400"
-                >
-                  Enter Property Vacancy Reserve Cap
-                </label>
-                <input
-                  type="text"
-                  className="form-control
+                  <div className="form-group my-3">
+                    <label
+                      htmlFor="rentalPeriodInDays"
+                      className="form-label inline-block mb-2 text-gray-400"
+                    >
+                      Rental Period In Days
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control
         block
         w-full
         px-3
@@ -413,58 +432,75 @@ const RentOperationDetails = () => {
        text-white
         bg-gray-900 
         rounded"
-                  id="vacancyReserveCap"
-                  name="vacancyReserveCap"
-                  value={listPropertydetails.vacancyReserveCap}
-                  onChange={handleListForm}
-                  placeholder="In Ether"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="
-      block
-      mx-auto
-      p-2.5
-      text-lg hover:bg-blue-700
-        border-2
-       border-blue-700
-      text-gray-500
-      uppercase
-      rounded
-       hover:text-black"
-              >
-                List Property for Rental Process
-              </button>
-            </form>
-          </div>
-          <div className="rightBlackContainer flex-1">
-            <img src={List_For_Rental} alt="List_For_Rental" />
-          </div>
-        </div>
-      </div>
+                      id="rentalPeriodInDays"
+                      name="rentalPeriod"
+                      value={initiateRentalDetails.rentalPeriod}
+                      onChange={handleInitiateRentalFrom}
+                      placeholder="In Days"
+                      required
+                    />
+                  </div>
+                  <div className="form-group my-3">
+                    <label
+                      htmlFor="totalRentAmount"
+                      className="form-label inline-block mb-2 text-gray-400"
+                    >
+                      Total Rent Amount
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control
+        block
+        w-full
+        px-3
+        py-1.5
+       text-white
+        bg-gray-900 
+        rounded"
+                      id="totalRentAmount"
+                      name="totalRentAmount"
+                      value={initiateRentalDetails.totalRentAmount}
+                      onChange={handleInitiateRentalFrom}
+                      placeholder="In Eth"
+                      required
+                    />
+                  </div>
+                  <div className="form-group my-3">
+                    <label
+                      htmlFor="amountTowardsMaintenanceReserve"
+                      className="form-label inline-block mb-2 text-gray-400"
+                    >
+                      Amount Towards Maintenance Reserve
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control
+        block
+        w-full
+        px-3
+        py-1.5
+       text-white
+        bg-gray-900 
+        rounded"
+                      id="amountTowardsMaintenanceReserve"
+                      name="amountToMaintenanceReserve"
+                      value={initiateRentalDetails.amountToMaintenanceReserve}
+                      onChange={handleInitiateRentalFrom}
+                      placeholder="In Eth"
+                      required
+                    />
+                  </div>
 
-      <div className="InitiateRentalPeriod">
-        <p className="text-5xl w-fit mx-auto text-gray-500 p-3 border-b-2">
-          Initiate Rental period
-        </p>
-        <div className="Container3 flex mt-6 pb-6">
-          <div className="leftBlackContainer flex-1 pt-12">
-            <img src={Initiate} alt="Initiate" />
-          </div>
-          <div className="rightFormContainer flex-1 p-16">
-            <form onSubmit={handleInitiateRentalSubmit}>
-              <div className="form-group my-3">
-                <label
-                  htmlFor="tenantAddress"
-                  className="form-label inline-block mb-2 text-gray-400"
-                >
-                  Enter Tenant Address
-                </label>
-                <input
-                  type="text"
-                  className="form-control
+                  <div className="form-group my-3">
+                    <label
+                      htmlFor="amountTowardsVacancyReserve"
+                      className="form-label inline-block mb-2 text-gray-400"
+                    >
+                      Amount Towards Vacancy Reserve
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control
         block
         w-full
         px-3
@@ -472,119 +508,17 @@ const RentOperationDetails = () => {
        text-white
         bg-gray-900 
         rounded"
-                  id="tenantAddress"
-                  name="tenantAddress"
-                  value={initiateRentalDetails.tenantAddress}
-                  onChange={handleInitiateRentalFrom}
-                  placeholder="Tenant Eth Address"
-                  required
-                />
-              </div>
-
-              <div className="form-group my-3">
-                <label
-                  htmlFor="rentalPeriodInDays"
-                  className="form-label inline-block mb-2 text-gray-400"
-                >
-                  Rental Period In Days
-                </label>
-                <input
-                  type="text"
-                  className="form-control
-        block
-        w-full
-        px-3
-        py-1.5
-       text-white
-        bg-gray-900 
-        rounded"
-                  id="rentalPeriodInDays"
-                  name="rentalPeriod"
-                  value={initiateRentalDetails.rentalPeriod}
-                  onChange={handleInitiateRentalFrom}
-                  placeholder="In Days"
-                  required
-                />
-              </div>
-              <div className="form-group my-3">
-                <label
-                  htmlFor="totalRentAmount"
-                  className="form-label inline-block mb-2 text-gray-400"
-                >
-                  Total Rent Amount
-                </label>
-                <input
-                  type="text"
-                  className="form-control
-        block
-        w-full
-        px-3
-        py-1.5
-       text-white
-        bg-gray-900 
-        rounded"
-                  id="totalRentAmount"
-                  name="totalRentAmount"
-                  value={initiateRentalDetails.totalRentAmount}
-                  onChange={handleInitiateRentalFrom}
-                  placeholder="In Eth"
-                  required
-                />
-              </div>
-              <div className="form-group my-3">
-                <label
-                  htmlFor="amountTowardsMaintenanceReserve"
-                  className="form-label inline-block mb-2 text-gray-400"
-                >
-                  Amount Towards Maintenance Reserve
-                </label>
-                <input
-                  type="text"
-                  className="form-control
-        block
-        w-full
-        px-3
-        py-1.5
-       text-white
-        bg-gray-900 
-        rounded"
-                  id="amountTowardsMaintenanceReserve"
-                  name="amountToMaintenanceReserve"
-                  value={initiateRentalDetails.amountToMaintenanceReserve}
-                  onChange={handleInitiateRentalFrom}
-                  placeholder="In Eth"
-                  required
-                />
-              </div>
-
-              <div className="form-group my-3">
-                <label
-                  htmlFor="amountTowardsVacancyReserve"
-                  className="form-label inline-block mb-2 text-gray-400"
-                >
-                  Amount Towards Vacancy Reserve
-                </label>
-                <input
-                  type="text"
-                  className="form-control
-        block
-        w-full
-        px-3
-        py-1.5
-       text-white
-        bg-gray-900 
-        rounded"
-                  id="amountTowardsVacancyReserve"
-                  name="amountToVacancyReserve"
-                  value={initiateRentalDetails.amountToVacancyReserve}
-                  onChange={handleInitiateRentalFrom}
-                  placeholder="In Eth"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="
+                      id="amountTowardsVacancyReserve"
+                      name="amountToVacancyReserve"
+                      value={initiateRentalDetails.amountToVacancyReserve}
+                      onChange={handleInitiateRentalFrom}
+                      placeholder="In Eth"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="
                 block
       w-fit
       mx-auto
@@ -598,13 +532,16 @@ const RentOperationDetails = () => {
       uppercase
       rounded
        hover:text-black"
-              >
-                Initiate Rental Period
-              </button>
-            </form>
+                  >
+                    Initiate Rental Period
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
       <LoadingModal show={showLoader}>
         <div
           className="flex justify-center items-center flex-col"
