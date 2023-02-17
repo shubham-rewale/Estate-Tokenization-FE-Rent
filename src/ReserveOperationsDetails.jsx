@@ -14,7 +14,7 @@ import connectToMetamask from "./utils/connectTometamask";
 import { LoadingModal } from "./Modal";
 import loaderGIF from "./assets/loader.gif";
 import APIloader2GIF from "./assets/APILoader2.gif";
-import { reloadContext } from "./App";
+import { reloadContext, userContext } from "./App";
 
 const ReserveOperationsDetails = () => {
   const [ReserveAmounts, setReserveAmounts] = useState({
@@ -34,6 +34,7 @@ const ReserveOperationsDetails = () => {
   });
   const [reloadComponent, setReloadComponent] =
     useContext(reloadContext).reloadDetails;
+  const [user, setUser] = useContext(userContext).userDetails;
   const [showLoader, setShowLoader] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -191,28 +192,29 @@ const ReserveOperationsDetails = () => {
                 )}
               </p>
             </div>
-            <div className="FormContainer mt-10">
-              <form onSubmit={handleMaintenanceReserveRestore}>
-                <div className="form-group my-3 flex justify-center">
-                  <input
-                    type="text"
-                    className="form-control
+            {user.isConnected && user.isPropertyManager && (
+              <div className="FormContainer mt-10">
+                <form onSubmit={handleMaintenanceReserveRestore}>
+                  <div className="form-group my-3 flex justify-center">
+                    <input
+                      type="text"
+                      className="form-control
         block
         px-3
         py-1.5
        text-white
         bg-gray-900 
         rounded"
-                    name="maintenanceReserveAmount"
-                    value={ReserveAmounts.maintenanceReserveAmount}
-                    onChange={handleAmountForm}
-                    placeholder="In Ether"
-                    required
-                  />
+                      name="maintenanceReserveAmount"
+                      value={ReserveAmounts.maintenanceReserveAmount}
+                      onChange={handleAmountForm}
+                      placeholder="In Ether"
+                      required
+                    />
 
-                  <button
-                    type="submit"
-                    className="
+                    <button
+                      type="submit"
+                      className="
         block
         px-3
         py-1.5
@@ -224,12 +226,13 @@ const ReserveOperationsDetails = () => {
         border-green-600
         hover:bg-green-600 
         hover:text-gray-300"
-                  >
-                    Restore
-                  </button>
-                </div>
-              </form>
-            </div>
+                    >
+                      Restore
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
 
@@ -268,28 +271,29 @@ const ReserveOperationsDetails = () => {
                 )}
               </p>
             </div>
-            <div className="FormContainer mt-10">
-              <form onSubmit={handleVacancyReserveRestore}>
-                <div className="form-group my-3 flex justify-center">
-                  <input
-                    type="text"
-                    className="form-control
+            {user.isConnected && user.isPropertyManager && (
+              <div className="FormContainer mt-10">
+                <form onSubmit={handleVacancyReserveRestore}>
+                  <div className="form-group my-3 flex justify-center">
+                    <input
+                      type="text"
+                      className="form-control
         block
         px-3
         py-1.5
        text-white
         bg-gray-900 
         rounded"
-                    name="vacancyReserveAmount"
-                    value={ReserveAmounts.vacancyReserveAmount}
-                    onChange={handleAmountForm}
-                    placeholder="In Ether"
-                    required
-                  />
+                      name="vacancyReserveAmount"
+                      value={ReserveAmounts.vacancyReserveAmount}
+                      onChange={handleAmountForm}
+                      placeholder="In Ether"
+                      required
+                    />
 
-                  <button
-                    type="submit"
-                    className="
+                    <button
+                      type="submit"
+                      className="
         block
         px-3
         py-1.5
@@ -301,12 +305,13 @@ const ReserveOperationsDetails = () => {
         border-rose-800
         hover:bg-rose-800 
         hover:text-gray-300"
-                  >
-                    Restore
-                  </button>
-                </div>
-              </form>
-            </div>
+                    >
+                      Restore
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       </div>
