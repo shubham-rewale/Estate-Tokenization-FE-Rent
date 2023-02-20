@@ -45,7 +45,11 @@ const Home = () => {
           ? tokenData.map((property, idx) => (
               <PropertyCard key={idx} property={property} />
             ))
-          : Array(6).fill(<LoadingSkeleton />)}
+          : Array(6)
+              .fill(0)
+              .map((item, idx) => {
+                return <LoadingSkeleton key={idx} />;
+              })}
       </div>
     </div>
   );
