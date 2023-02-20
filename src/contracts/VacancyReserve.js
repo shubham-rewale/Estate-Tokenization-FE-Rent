@@ -1,4 +1,4 @@
-const Vacancy_Mumbai_Address = "0x2554fC22F41eb698EA3A47cb788E00151dc8de8b";
+const Vacancy_Mumbai_Address = "0xf0fA7d7a012aE0462a96a581C5332bA39B113273";
 const VacancyReserveABI = [
   {
     inputs: [],

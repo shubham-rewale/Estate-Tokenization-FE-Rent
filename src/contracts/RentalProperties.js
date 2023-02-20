@@ -1,4 +1,4 @@
-const MUMBAI_ADDRESS = "0x73A6118c784325DC0Dd5e23494D4bF1aFC5D9bfb";
+const MUMBAI_ADDRESS = "0x06bcA0deFE72dE807C14Ad54304Fb3F2aD0686EB";
 const ABI = [
   {
     inputs: [],
@@ -90,6 +90,12 @@ const ABI = [
         name: "_rentAmountPerOwner",
         type: "uint256[]",
       },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "_blockNumber",
+        type: "uint256",
+      },
     ],
     name: "RentDistributed",
     type: "event",
@@ -143,7 +149,7 @@ const ABI = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "terminationTimestamp",
+        name: "terminationBlockNumber",
         type: "uint256",
       },
       {
@@ -167,6 +173,31 @@ const ABI = [
       },
     ],
     name: "Upgraded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "_rentalPropertyTokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "beneficiaryAddr",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "withdrawalAmount",
+        type: "uint256",
+      },
+    ],
+    name: "rentIncomeWithdrwal",
     type: "event",
   },
   {
@@ -208,6 +239,25 @@ const ABI = [
     name: "enterRentalPropertyDetails",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_propertyTokenId",
+        type: "uint256",
+      },
+    ],
+    name: "getPropertyListingStatus",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "_status",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -262,6 +312,30 @@ const ABI = [
       {
         internalType: "uint256",
         name: "_dailyRent",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_propertyTokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "shareHolderAddr",
+        type: "address",
+      },
+    ],
+    name: "getShareHoldersRentIncome",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "_incomeBalance",
         type: "uint256",
       },
     ],
@@ -479,6 +553,19 @@ const ABI = [
     name: "upgradeToAndCall",
     outputs: [],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_propertyTokenId",
+        type: "uint256",
+      },
+    ],
+    name: "withdrawRentIncome",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];

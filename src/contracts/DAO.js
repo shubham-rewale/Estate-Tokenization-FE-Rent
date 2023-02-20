@@ -1,4 +1,4 @@
-const MUMBAI_ADDRESS = "0x35890744DA5E03E3dDB9A6Da44AB05a458b149Ff";
+const MUMBAI_ADDRESS = "0xFA5F425eCc75d5e5E08402C5342DF2a225c389B6";
 const ABI = [
   {
     inputs: [],
@@ -97,6 +97,12 @@ const ABI = [
         name: "proposalId",
         type: "uint256",
       },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "result",
+        type: "bool",
+      },
     ],
     name: "executed",
     type: "event",
@@ -114,6 +120,30 @@ const ABI = [
         indexed: false,
         internalType: "uint256",
         name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "enum DAO.ReserveContracts",
+        name: "withdrawFundsFrom",
+        type: "uint8",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "proposalEditedAt",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "totalTokenSupply",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "quorumVote",
         type: "uint256",
       },
     ],
@@ -144,19 +174,31 @@ const ABI = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "presentBlockNumber",
+        name: "proposalInitiatedAt",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "votingWillStartAt",
+        name: "votingStartAt",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "votingWillEndAt",
+        name: "votingEndAt",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "totalTokenSupply",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "quorumVote",
         type: "uint256",
       },
     ],
@@ -169,13 +211,13 @@ const ABI = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "tokenId",
+        name: "totalForVote",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "proposalId",
+        name: "totalAgainstVote",
         type: "uint256",
       },
       {
@@ -200,6 +242,19 @@ const ABI = [
     outputs: [
       {
         internalType: "contract IMaintenanceReserve",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "RentalProperties",
+    outputs: [
+      {
+        internalType: "contract IRentalProperties",
         name: "",
         type: "address",
       },
@@ -352,6 +407,21 @@ const ABI = [
         name: "_propertyManager",
         type: "address",
       },
+      {
+        internalType: "uint256",
+        name: "_quorumPercentage",
+        type: "uint256",
+      },
+      {
+        internalType: "contract IMOGTokenUpgradeable",
+        name: "_token",
+        type: "address",
+      },
+      {
+        internalType: "contract IRentalProperties",
+        name: "_RentalProperties",
+        type: "address",
+      },
     ],
     name: "initialize",
     outputs: [],
@@ -419,28 +489,14 @@ const ABI = [
     name: "proposals",
     outputs: [
       {
-        components: [
-          {
-            internalType: "uint64",
-            name: "_deadline",
-            type: "uint64",
-          },
-        ],
-        internalType: "struct TimersUpgradeable.BlockNumber",
+        internalType: "uint256",
         name: "voteStart",
-        type: "tuple",
+        type: "uint256",
       },
       {
-        components: [
-          {
-            internalType: "uint64",
-            name: "_deadline",
-            type: "uint64",
-          },
-        ],
-        internalType: "struct TimersUpgradeable.BlockNumber",
+        internalType: "uint256",
         name: "voteEnd",
-        type: "tuple",
+        type: "uint256",
       },
       {
         internalType: "uint256",
@@ -466,6 +522,11 @@ const ABI = [
         internalType: "string",
         name: "proposalProof",
         type: "string",
+      },
+      {
+        internalType: "uint256",
+        name: "totalTokenSupply",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -582,6 +643,19 @@ const ABI = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "token",
+    outputs: [
+      {
+        internalType: "contract IMOGTokenUpgradeable",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -649,7 +723,7 @@ const ABI = [
       },
       {
         internalType: "uint256",
-        name: "amount",
+        name: "_amount",
         type: "uint256",
       },
     ],
