@@ -201,7 +201,7 @@ const ProposalDetails = () => {
                         ? " text-yellow-300"
                         : proposal.proposalState === "Active"
                         ? " text-blue-600"
-                        : proposal.proposalState === "Approved  "
+                        : proposal.proposalState === "Approved"
                         ? "text-green-500"
                         : "text-red-500" //rejected
                     } `}
