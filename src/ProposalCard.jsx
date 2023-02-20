@@ -20,7 +20,7 @@ const ProposalCard = (props) => {
               ? " text-yellow-300"
               : proposal.proposalState === "Active"
               ? " text-blue-600"
-              : proposal.proposalState === "Executed"
+              : proposal.proposalState === "Approved"
               ? "text-green-500"
               : "text-red-500"
           } `}
