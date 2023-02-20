@@ -109,6 +109,10 @@ const ReserveOperationsDetails = () => {
         console.log(err);
       }
     }
+    setReserveAmounts({
+      maintenanceReserveAmount: "",
+      vacancyReserveAmount: "",
+    });
     setShowLoader(false);
   };
 
@@ -144,6 +148,10 @@ const ReserveOperationsDetails = () => {
         console.log(err);
       }
     }
+    setReserveAmounts({
+      maintenanceReserveAmount: "",
+      vacancyReserveAmount: "",
+    });
     setShowLoader(false);
   };
 
