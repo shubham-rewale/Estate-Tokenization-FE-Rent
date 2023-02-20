@@ -395,22 +395,22 @@ const Proposal = () => {
               )}
             </div>
           </div>
-          <div className="executedState">
+          <div className="approvedState">
             <div className="border-b-2 border-gray-500">
-              <p className="text-2xl w-fit  mx-auto p-2">Executed</p>
+              <p className="text-2xl w-fit  mx-auto p-2">Approved</p>
             </div>
             <div className="proposals">
               {isLoading ? (
                 <div className="w-fit mx-auto">
                   <LoadingSkeleton />
                 </div>
-              ) : filterProposalCard(proposals, "Executed").length > 0 ? (
-                filterProposalCard(proposals, "Executed").map((ele, idx) => (
+              ) : filterProposalCard(proposals, "Approved").length > 0 ? (
+                filterProposalCard(proposals, "Approved").map((ele, idx) => (
                   <ProposalCard key={idx} proposal={ele} />
                 ))
               ) : (
                 <div className="text-xl w-fit mx-auto my-3">
-                  0 Executed Proposal
+                  0 Approved Proposal
                 </div>
               )}
             </div>
