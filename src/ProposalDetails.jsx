@@ -141,6 +141,7 @@ const ProposalDetails = () => {
       );
       setShowLoader(true);
       const txFinality = await tx.wait();
+      console.log(txFinality.transactionHash);
       if (txFinality.blockNumber != null) {
         let result;
 
@@ -156,6 +157,7 @@ const ProposalDetails = () => {
             updateField: "executionField",
             result: result ? "success" : "failed",
             isExecuted: true,
+            txHash: txFinality.transactionHash,
           }
         );
         alert("Successfully Executed Proposal");
@@ -209,6 +211,18 @@ const ProposalDetails = () => {
                     {proposal.proposalState}
                   </span>
                 </p>
+                {proposal.proposalState === "Approved" && (
+                  <p>
+                    <span className=" text-blue-700">
+                      <a
+                        href={`https://mumbai.polygonscan.com/tx/${proposal.txHash}`}
+                        target="_blank"
+                      >
+                        Visit Transaction
+                      </a>
+                    </span>{" "}
+                  </p>
+                )}
               </div>
             </div>
             <div className="VotingContainer flex-1">
